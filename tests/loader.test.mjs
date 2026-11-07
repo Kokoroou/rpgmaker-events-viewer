@@ -223,3 +223,75 @@ test('a load that is replaced by a newer one never commits', async () => {
   await get('S.bgDone');
   assert.deepEqual(plain([...get('S.maps.keys()')]), [2]);
 });
+
+/* ── Game link (rwk lens) ── */
+test('opens a game from a link: data over the key, pictures read later from the game file list', async () => {
+  const TOKEN = 'aabbccddeeff.' + 's'.repeat(32);
+  const requests = [];
+  const files = {
+    'data/MapInfos.json': JSON.stringify([null, { name: 'Town', parentId: 0, order: 1 }]),
+    'data/Actors.json': '[null]',
+    'data/System.json': JSON.stringify({ switches: [''], variables: [''], encryptionKey: '' }),
+    'data/CommonEvents.json': '[null]',
+    'data/Map001.json': JSON.stringify({ events: [null, { id: 1, name: 'Guard', x: 0, y: 0, pages: [{ list: [c(101, 0, ['']), c(401, 0, ['Halt']), c(0, 0)] }] }] }),
+    'img/pictures/Hero.png': 'PNGDATA',
+  };
+  const fetchImpl = async (url, init) => {
+    const path = new URL(url).pathname;
+    requests.push([path, init.headers.authorization, init.credentials]);
+    if (path === '/_lens/ping') return Response.json({ ok: true });
+    if (path === '/_lens/manifest') return Response.json({ title: 'G', engine: 'MZ', files: Object.fromEntries(Object.keys(files).map(k => [k, files[k].length])) });
+    const rel = decodeURIComponent(path.slice('/_lens/file/'.length));
+    return rel in files ? new Response(files[rel]) : new Response('', { status: 404 });
+  };
+  const { calls } = setup();
+  // remote.js and media.js load into the same scope as the page's scripts do.
+  const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
+    EL: { scanStatus: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
+    setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, Response, encodeURIComponent, fetch: fetchImpl,
+    Loader: { active: false, open(o) { calls.loader.push(['open', o.name, o.kind]); }, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },
+  });
+  load2('globalThis').__calls = calls;
+  load2('setStatus = (k, h) => __calls.status.push([k, h]); renderSidebar = () => {}; selectMap = id => __calls.selected.push(id);');
+
+  const link = load2(`Remote.parseLink('https://makerlens.kokoroou.workers.dev/events/#game=${encodeURIComponent('https://my-game.alice.workers.dev')}&t=${TOKEN}')`);
+  load2('globalThis').__link = link;
+  await load2('openRemote(__link)');
+  await load2('S.bgDone');
+
+  assert.deepEqual(calls.loader[0], ['open', 'my-game.alice.workers.dev', 'remote']);
+  assert.equal(calls.failed.length, 0);
+  assert.deepEqual(plain([...load2('S.maps').keys()]), [1]);
+  assert.deepEqual(calls.selected, [1]);
+
+  // The scene player's picture comes through the same link, when it is first asked for.
+  const before = requests.length;
+  const media = load2('Media');
+  const dir = await media.root.list('img/pictures');
+  assert.deepEqual([...dir.keys()], ['hero.png']);
+  assert.equal(requests.length, before, 'listing a folder reads nothing');
+  const bytes = await (await media.root.file(dir.get('hero.png'))).arrayBuffer();
+  assert.equal(new TextDecoder().decode(bytes), 'PNGDATA');
+  assert.equal(requests.at(-1)[0], '/_lens/file/img/pictures/Hero.png');
+
+  for (const [, auth, credentials] of requests) {
+    assert.equal(auth, `Bearer ${TOKEN}`);
+    assert.equal(credentials, 'omit');
+  }
+  assert.ok(!requests.some(([p]) => p.includes('Map00') && !p.endsWith('Map001.json')));
+});
+
+test('a link that does not work ends in the loader’s error, not a crash', async () => {
+  const { calls } = setup();
+  const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
+    EL: { scanStatus: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
+    setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, encodeURIComponent,
+    fetch: async () => new Response('', { status: 401 }),
+    Loader: { active: false, open() {}, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },
+  });
+  get('globalThis').__calls = calls;
+  get('setStatus = (k, h) => __calls.status.push([k, h]);');
+  get('globalThis').__link = get(`Remote.parseLink('https://x/#game=${encodeURIComponent('https://g.alice.workers.dev')}&t=aabbccddeeff.${'s'.repeat(32)}')`);
+  await get('openRemote(__link)');
+  assert.match(calls.failed[0], /expired or was stopped/);
+});

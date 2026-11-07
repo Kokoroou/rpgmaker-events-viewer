@@ -54,11 +54,13 @@ const Loader = (() => {
     if (state === 'active' && changed) { progress(0, 0); live.textContent = LOADER_STEPS[id] + '…'; }
   }
 
-  function open({ name, steps }) {
+  function open({ name, steps, kind }) {
     active = true; cancelled = false; committed = false;
     prevFocus = document.activeElement;
     root.classList.remove('failed');
-    titleEl.textContent = 'Opening game folder';
+    titleEl.textContent = kind === 'remote' ? 'Opening game link' : 'Opening game folder';
+    const icon = $('loader-icon-use');
+    if (icon) icon.setAttribute('href', kind === 'remote' ? '#i-link' : '#i-folder');
     nameEl.textContent = name || '';
     errEl.textContent = '';
     fill.style.width = '0';
