@@ -224,7 +224,7 @@ test('a load that is replaced by a newer one never commits', async () => {
   assert.deepEqual(plain([...get('S.maps.keys()')]), [2]);
 });
 
-/* ── Game link (rwk lens) ── */
+/* ── Game link (the game’s Share menu) ── */
 test('opens a game from a link: data over the key, pictures read later from the game file list', async () => {
   const TOKEN = 'aabbccddeeff.' + 's'.repeat(32);
   const requests = [];

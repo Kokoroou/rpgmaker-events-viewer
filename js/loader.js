@@ -340,7 +340,7 @@ function openFolder(root, fs) {
 
 /* ── Game link (js/remote.js) ───────────────────────────
    A game published with rpgmaker-web-toolkit, opened through the read-only link
-   `rwk lens` makes. data/*.json are read through the same path as a folder; the scene
+   the game’s Share menu makes. data/*.json are read through the same path as a folder; the scene
    player's pictures and audio come from the game's file list, one file at a time.
    Only the game's own site is contacted, with the key in a header (no cookies). */
 function remoteMedia(list, api) {
@@ -377,7 +377,7 @@ function openRemote(link) {
   }, 'remote');
 }
 
-// The link in the address (the one `rwk lens` prints): open it, and take the key
+// The link in the address (the one the game’s Share menu shows): open it, and take the key
 // out of the address bar and the history.
 function openFromAddress() {
   const link = Remote.fromLocation(location.hash);
