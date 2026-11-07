@@ -28,11 +28,11 @@ const abort = msg => new DOMException(msg, 'AbortError');
 // Every way of opening a game goes through here: it drives the Loader overlay.
 // The new game is built on the side and only replaces the open one at commit,
 // so Cancel or a failure before that keeps what was on screen.
-async function runLoad(name, getFiles) {
+async function runLoad(name, getFiles, kind) {
   const id = ++seq;
   const guard = () => { if (id !== seq) throw abort('Superseded'); Loader.check(); };
   Fg.active++;   // the previous game's background reading yields meanwhile
-  Loader.open({ name, steps: ['detect', 'read', 'map'] });
+  Loader.open({ name, steps: ['detect', 'read', 'map'], kind });
   Loader.step('detect', 'active');
   try {
     const files = await getFiles(guard);
@@ -117,8 +117,8 @@ async function loadFiles(files, id, guard) {
   S.mapFiles = new Map([...mapFiles].sort((a, b) => a[0] - b[0]));
   // The game folder (parent of data/), for the scene player's pictures and audio (media.js).
   if (typeof Media !== 'undefined') {
-    const root = files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
-      : dataPrefix ? filesRoot(fileMap, dataPrefix.replace(/data\/$/i, '')) : null;
+    const root = files.mediaRoot || (files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
+      : dataPrefix ? filesRoot(fileMap, dataPrefix.replace(/data\/$/i, '')) : null);
     Media.reset(root, system);
   }
   S.selectedMapId = null;
@@ -336,4 +336,52 @@ function openFolder(root, fs) {
     guard();
     Loader.detail('detect', path ? path : 'looking in the folder…');
   }));
+}
+
+/* ── Game link (js/remote.js) ───────────────────────────
+   A game published with rpgmaker-web-toolkit, opened through the read-only link
+   the game’s Share menu makes. data/*.json are read through the same path as a folder; the scene
+   player's pictures and audio come from the game's file list, one file at a time.
+   Only the game's own site is contacted, with the key in a header (no cookies). */
+function remoteMedia(list, api) {
+  const files = new Map();
+  for (const rel of Object.keys(list)) {
+    if (!/^(img|audio)\//.test(rel) && rel !== 'js/plugins.js') continue;
+    files.set(rel, {
+      name: rel.split('/').pop(),
+      arrayBuffer: () => api.blob(rel).then(b => b.arrayBuffer()),
+      text: () => api.blob(rel).then(b => b.text()),
+    });
+  }
+  return filesRoot(files, '');
+}
+
+function openRemote(link) {
+  const api = Remote.client(link);
+  return runLoad(api.host, async guard => {
+    Loader.detail('detect', 'connecting…');
+    await api.ping();
+    guard();
+    Loader.detail('detect', 'reading the file list…');
+    const manifest = await api.manifest();
+    guard();
+    const out = Object.keys(manifest.files)
+      .filter(rel => /^data\/[^/]+$/.test(rel) && DATA_FILE.test(rel.slice(5)))
+      .map(rel => ({
+        name: rel.slice(5),
+        _dragPath: rel,
+        text: () => api.blob(rel).then(b => b.text()),
+      }));
+    out.mediaRoot = remoteMedia(manifest.files, api);
+    return out;
+  }, 'remote');
+}
+
+// The link in the address (the one the game’s Share menu shows): open it, and take the key
+// out of the address bar and the history.
+function openFromAddress() {
+  const link = Remote.fromLocation(location.hash);
+  if (!link) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  openRemote(link);
 }

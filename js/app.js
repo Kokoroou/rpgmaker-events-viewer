@@ -215,6 +215,43 @@ function init() {
     if (e.target.files.length) loadFolder([...e.target.files]);
   });
 
+  /* View another way: one button, the dialog asks which way. */
+  const alt = document.getElementById('alt-dialog');
+  const altInput = document.getElementById('alt-link-input');
+  const altError = document.getElementById('alt-link-error');
+  const altShow = panel => {
+    document.getElementById('alt-menu').hidden = panel !== 'menu';
+    document.getElementById('alt-link-panel').hidden = panel !== 'link';
+    document.getElementById('alt-title').textContent = panel === 'link' ? 'Open a game link' : 'View another way';
+    altError.textContent = '';
+    if (panel === 'link') altInput.focus();
+  };
+  const altSubmit = () => {
+    let link;
+    try { link = Remote.parseLink(altInput.value); }
+    catch (e) { altError.textContent = e.message; return; }
+    alt.close();
+    altInput.value = '';
+    openRemote(link);
+  };
+  document.getElementById('alt-btn').addEventListener('click', () => {
+    if (Loader.active) return;
+    altShow('menu');
+    if (!alt.open) alt.showModal();
+  });
+  document.getElementById('alt-close').addEventListener('click', () => alt.close());
+  alt.addEventListener('click', e => { if (e.target === alt) alt.close(); });   // the backdrop
+  document.getElementById('alt-link').addEventListener('click', () => altShow('link'));
+  document.getElementById('alt-back').addEventListener('click', () => altShow('menu'));
+  document.getElementById('alt-open').addEventListener('click', altSubmit);
+  altInput.addEventListener('keydown', e => { if (e.key === 'Enter') altSubmit(); });
+  document.getElementById('alt-files').addEventListener('click', () => { alt.close(); document.getElementById('files-input').click(); });
+  document.getElementById('files-input').addEventListener('change', e => {
+    const picked = [...e.target.files];
+    e.target.value = '';
+    if (picked.length) loadFolder(picked);
+  });
+
   document.addEventListener('dragover', e => {
     e.preventDefault();
     document.getElementById('drag-overlay').classList.add('active');
@@ -249,6 +286,7 @@ function init() {
   EL.scenePlay.addEventListener('click', () => { if (S.sceneEntry) openScene(S.sceneEntry); });
 
   initSearch();
+  openFromAddress();
 
   EL.cyFit.addEventListener('click', () => cy?.fit(undefined, 32));
   EL.cyZoomIn.addEventListener('click',  () => cy?.zoom({ level: cy.zoom() * 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));

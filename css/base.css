@@ -45,7 +45,7 @@ code {
 ::-webkit-scrollbar-thumb:hover { background-color: var(--t3); }
 
 /* ── Hidden things ───────────────────────────────────── */
-#folder-input { display: none; }
+#folder-input, #files-input { display: none; }
 .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* ── Focus ───────────────────────────────────────────── */

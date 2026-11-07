@@ -20,6 +20,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const APP = 'index.html';
 const PAGES = [APP, 'faq.html'];
 const COUNTER = 'https://makerlens.goatcounter.com';
+const GAMES = 'https://*.workers.dev';   // game links (js/remote.js): games published with rpgmaker-web-toolkit
 const FEEDBACK = 'https://feedback.kokoroou.workers.dev';   // inbox in the private repo Kokoroou/feedbacks
 
 const errors = [];
@@ -58,8 +59,8 @@ for (const PAGE of PAGES) {
       for (const v of vals) {
         if (!/^https?:/.test(v) && !/\*/.test(v)) continue;
         if (name === 'img-src' && v === COUNTER) continue;
-        if (name === 'connect-src' && v === FEEDBACK && PAGE === APP) continue;
-        fail(PAGE, `CSP ${name} allows the external source ${v} (only ${COUNTER} in img-src and, in ${APP}, ${FEEDBACK} in connect-src are allowed)`);
+        if (name === 'connect-src' && (v === FEEDBACK || v === GAMES) && PAGE === APP) continue;
+        fail(PAGE, `CSP ${name} allows the external source ${v} (only ${COUNTER} in img-src and, in ${APP}, ${FEEDBACK} and ${GAMES} in connect-src are allowed)`);
       }
     }
   }
