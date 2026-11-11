@@ -24,7 +24,7 @@ function setup() {
     check() { if (calls.cancel) throw new DOMException('cancelled', 'AbortError'); },
   };
   const get = load(['constants.js', 'parser.js', 'state.js', 'loader.js'], {
-    EL: { scanStatus: {}, sidebar: { classList: cls() }, sbResizer: { classList: cls() } },
+    EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: cls() }, sbResizer: { classList: cls() } },
     setTimeout, clearTimeout, DOMException, Loader,
   });
   // UI functions from other files, replaced with recorders.
@@ -247,7 +247,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
   const { calls } = setup();
   // remote.js and media.js load into the same scope as the page's scripts do.
   const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
-    EL: { scanStatus: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
+    EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, Response, encodeURIComponent, fetch: fetchImpl,
     Loader: { active: false, open(o) { calls.loader.push(['open', o.name, o.kind]); }, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },
   });
@@ -263,6 +263,8 @@ test('opens a game from a link: data over the key, pictures read later from the 
   assert.equal(calls.failed.length, 0);
   assert.deepEqual(plain([...load2('S.maps').keys()]), [1]);
   assert.deepEqual(calls.selected, [1]);
+  assert.equal(load2('EL.switchTool.hidden'), false, 'a game link offers the switch to Assets');
+  assert.equal(load2('S.remoteLink.origin'), 'https://my-game.alice.workers.dev');
 
   // The scene player's picture comes through the same link, when it is first asked for.
   const before = requests.length;
@@ -284,7 +286,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
 test('a link that does not work ends in the loader’s error, not a crash', async () => {
   const { calls } = setup();
   const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
-    EL: { scanStatus: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
+    EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, encodeURIComponent,
     fetch: async () => new Response('', { status: 401 }),
     Loader: { active: false, open() {}, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },

@@ -3,7 +3,7 @@ const EL = {};
 document.addEventListener('DOMContentLoaded', () => {
   [
     'setup','sidebar','sb-list','sb-search-input',
-    'scan-status','setup-status','event-breadcrumb','page-tabs',
+    'scan-status','switch-tool','setup-status','event-breadcrumb','page-tabs',
     'event-picker','event-list-grid','detail-panel','detail-body',
     'open-btn','about-btn','about-modal','about-close','theme-toggle',
     'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play',
@@ -292,6 +292,10 @@ function init() {
   EL.cyZoomIn.addEventListener('click',  () => cy?.zoom({ level: cy.zoom() * 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
   EL.cyZoomOut.addEventListener('click', () => cy?.zoom({ level: cy.zoom() / 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
 
+  // One link for both tools: the same game opens in MakerLens Assets, the link kept in memory.
+  EL.switchTool.addEventListener('click', () => {
+    if (S.remoteLink) location.href = Remote.switchURL(S.remoteLink, 'assets');
+  });
   EL.aboutBtn.addEventListener('click', () => EL.aboutModal.classList.add('open'));
   EL.aboutClose.addEventListener('click', () => EL.aboutModal.classList.remove('open'));
   EL.aboutModal.addEventListener('click', e => { if (e.target === EL.aboutModal) EL.aboutModal.classList.remove('open'); });
