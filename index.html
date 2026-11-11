@@ -102,6 +102,7 @@
   <symbol id="i-skip-fwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l10 8-10 8V4zM19 5v14"/></symbol>
   <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.39-1.61M2 2l20 20"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
   <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0012 3z"/></symbol>
 </svg>
 
@@ -115,7 +116,14 @@
 
   <div id="header-right">
     <span id="scan-status" aria-live="polite"></span>
-    <button class="btn-ghost" id="switch-tool" hidden>Open in Assets</button>
+    <div class="tool-switch" id="switch-tool" role="group" aria-label="Open this game in" hidden>
+      <button class="ts-seg" id="switch-go" type="button" title="Open this game in MakerLens Assets" aria-label="Open this game in MakerLens Assets">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-grid"/></svg><span>Assets</span>
+      </button>
+      <span class="ts-seg" aria-current="page">
+        <svg width="16" height="16" aria-hidden="true"><use href="#i-flow"/></svg><span>Events</span>
+      </span>
+    </div>
     <button class="btn-icon" id="about-btn" title="About" aria-label="About">
       <svg width="20" height="20" aria-hidden="true"><use href="#i-info"/></svg>
     </button>
@@ -154,6 +162,12 @@
         <div class="setup-hero">
           <h1 class="setup-title">See how an RPG Maker game's events work</h1>
           <p class="setup-sub">Dialogue, choices, conditions and jumps of every event as a flow graph — right in your browser.</p>
+        </div>
+
+        <div class="handoff" id="handoff" hidden>
+          <p class="handoff-text">Carry on with <strong id="handoff-name"></strong> from MakerLens Assets?
+            <span class="handoff-note" id="handoff-note">Your browser asks once more before this page may read it. Nothing is uploaded.</span></p>
+          <button class="btn-primary" id="handoff-go" type="button">Allow and open</button>
         </div>
 
         <div id="drop-zone">
@@ -504,6 +518,7 @@
 <script src="js/scenes.js"></script>
 <script src="js/scene-script.js"></script>
 <script src="js/remote.js"></script>
+<script src="js/handoff.js"></script>
 <script src="js/media.js"></script>
 <script src="js/player.js"></script>
 <script src="js/search.js"></script>

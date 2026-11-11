@@ -53,6 +53,14 @@ function loadFolder(files) {
   return runLoad(first.includes('/') ? first.split(/[\\/]/)[0] : '', async () => files);
 }
 
+// The switch to MakerLens Assets (app.js, js/handoff.js): offered for a game link, or a folder
+// behind a handle when the two tools are served side by side.
+function syncSwitch() {
+  const can = !!(S.remoteLink || (S.folderHandle && typeof Handoff !== 'undefined' && Handoff.ready('assets', location.pathname)));
+  EL.switchTool.hidden = !can;
+  if (EL.switchGo && EL.switchGo.removeAttribute) EL.switchGo.removeAttribute('aria-busy');
+}
+
 function failLoad(message) {
   setStatus('err', message);
   Loader.fail(message);
@@ -122,7 +130,8 @@ async function loadFiles(files, id, guard) {
     Media.reset(root, system);
   }
   S.remoteLink = files.remoteLink || null;   // only a game link keeps one
-  EL.switchTool.hidden = !S.remoteLink;
+  S.folderHandle = files.folderHandle || null;   // a folder behind a directory handle keeps it
+  syncSwitch();
   S.selectedMapId = null;
   S.selectedEvId = null;
   S.currentPage = null;
@@ -332,10 +341,14 @@ async function openWithFSAPI() {
 
 // A directory handle (picker) or entry (drag & drop): only data/*.json is listed.
 function openFolder(root, fs) {
-  return runLoad(root.name || '', guard => findDataFiles(root, fs, path => {
-    guard();
-    Loader.detail('detect', path ? path : 'looking in the folder…');
-  }));
+  return runLoad(root.name || '', async guard => {
+    const out = await findDataFiles(root, fs, path => {
+      guard();
+      Loader.detail('detect', path ? path : 'looking in the folder…');
+    });
+    if (fs === FS_HANDLE) out.folderHandle = root;   // kept for the switch to Assets
+    return out;
+  });
 }
 
 /* ── Game link (js/remote.js) ───────────────────────────
