@@ -126,8 +126,6 @@ async function loadFiles(files, id, guard) {
   S.selectedMapId = null;
   S.selectedEvId = null;
   S.currentPage = null;
-  S.history = [];
-  S.future = [];
   mapReads = new Map();
   loadInfo = { total: S.mapFiles.size, done: 0, picked: false };
 

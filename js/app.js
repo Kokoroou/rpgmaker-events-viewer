@@ -325,8 +325,6 @@ function init() {
       EL.sbSearchInput.focus();
       EL.sbSearchInput.select();
     }
-    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo(); }
-    if ((e.ctrlKey || e.metaKey) && (e.shiftKey && e.key.toLowerCase() === 'z' || e.key.toLowerCase() === 'y')) { e.preventDefault(); redo(); }
   });
 
   EL.detailPanel.classList.add('hidden');

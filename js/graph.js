@@ -28,20 +28,10 @@ function initCy() {
     minZoom: 0.1,
     maxZoom: 3,
     wheelSensitivity: 0.3,
+    autoungrabify: true,   // read-only: nodes cannot be dragged
   });
   cy.on('tap', 'node', e => showDetail(e.target.data('nodeData')));
   cy.on('tap', e => { if (e.target === cy) clearDetail(); });
-  cy.on('grab', 'node', e => {
-    e.target.data('grabPos', { x: e.target.position().x, y: e.target.position().y });
-  });
-  cy.on('dragfree', 'node', e => {
-    const nd = e.target;
-    const oldPos = nd.data('grabPos');
-    if (!oldPos) return;
-    const newPos = { x: nd.position().x, y: nd.position().y };
-    S.history.push({ type: 'move', nodeId: nd.id(), oldPos, newPos });
-    S.future = [];
-  });
 }
 
 function cyStyle() {

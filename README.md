@@ -72,7 +72,6 @@ rpgmaker-events-viewer/  # formerly lore-insight; product name is MakerLens Even
     graph.js             # Cytoscape setup, style and render
     detail.js            # Node inspector panel
     sidebar.js           # Map tree and common events
-    history.js           # Undo/redo for node moves
     loader.js            # Folder picking and game data parsing
     app.js               # DOM refs, selection, UI wiring
   vendor/                # Cytoscape, dagre, cytoscape-dagre (MIT)

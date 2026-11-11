@@ -21,6 +21,4 @@ const S = {
   search:           '',         // sidebar search box (search.js); results replace the tree
   searchExpanded:   { scenes: false, events: false },   // every result, not the first few
   sceneEntry:       null,       // what the toolbar's Preview button plays (player.js)
-  history:          [],         // undo stack: {type, ...}
-  future:           [],         // redo stack
 };
