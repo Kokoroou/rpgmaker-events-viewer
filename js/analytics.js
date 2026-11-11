@@ -9,11 +9,17 @@
 // NEVER sent: file or folder names, game titles, map/event names, dialogue or
 //             any other game data. Do not add any of those here (CLAUDE.md).
 //
+// Events: countEvent(name) counts one of the fixed names in EVENTS (js/app.js: someone
+// switched to MakerLens Assets). Only the name is sent. It returns a Promise that resolves once
+// the request has been answered (or after 400 ms), so a page that navigates right after can wait.
+//
 // The Content-Security-Policy in index.html allows only this host in img-src.
+var countEvent = function () { return Promise.resolve(); };
 (function () {
   'use strict';
   var GC_ENDPOINT = 'https://makerlens.goatcounter.com/count';
   var PUBLIC_HOST = 'makerlens.kokoroou.workers.dev';
+  var EVENTS = ['switch-to-assets'];
   // Query params GoatCounter reads as traffic source / campaign. Nothing else is sent.
   var SOURCE_PARAMS = ['utm_source', 'ref', 'src', 'source', 'utm_campaign', 'campaign'];
 
@@ -32,4 +38,16 @@
   });
   if (q.toString()) params.set('q', '?' + q.toString());
   new Image().src = GC_ENDPOINT + '?' + params.toString();
+
+  countEvent = function (name) {
+    if (EVENTS.indexOf(name) < 0) return Promise.resolve();
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.onload = img.onerror = function () { resolve(); };
+      setTimeout(resolve, 400);
+      img.src = GC_ENDPOINT + '?' + new URLSearchParams({
+        p: name, t: name, e: 'true', rnd: Math.random().toString(36).slice(2)
+      }).toString();
+    });
+  };
 }());

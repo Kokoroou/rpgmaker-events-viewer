@@ -3,7 +3,7 @@ const EL = {};
 document.addEventListener('DOMContentLoaded', () => {
   [
     'setup','sidebar','sb-list','sb-search-input',
-    'scan-status','switch-tool','setup-status','event-breadcrumb','page-tabs',
+    'scan-status','switch-tool','switch-go','setup-status','handoff','handoff-name','handoff-note','handoff-go','event-breadcrumb','page-tabs',
     'event-picker','event-list-grid','detail-panel','detail-body',
     'open-btn','about-btn','about-modal','about-close','theme-toggle',
     'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play',
@@ -235,7 +235,8 @@ function init() {
     const items = [...e.dataTransfer.items];
     const entry = items.find(i => i.webkitGetAsEntry?.()?.isDirectory);
     if (entry) {
-      openFolder(entry.webkitGetAsEntry(), FS_ENTRY);
+      // Ask for the handle now: the DataTransfer is only valid during the drop event.
+      openDropped(entry.webkitGetAsEntry(), entry.getAsFileSystemHandle?.().catch(() => null));
     } else if (e.dataTransfer.files.length) {
       loadFolder([...e.dataTransfer.files]);
     }
@@ -262,9 +263,31 @@ function init() {
   EL.cyZoomIn.addEventListener('click',  () => cy?.zoom({ level: cy.zoom() * 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
   EL.cyZoomOut.addEventListener('click', () => cy?.zoom({ level: cy.zoom() / 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
 
-  // One link for both tools: the same game opens in MakerLens Assets, the link kept in memory.
-  EL.switchTool.addEventListener('click', () => {
-    if (S.remoteLink) location.href = Remote.switchURL(S.remoteLink, 'assets');
+  // The same game opens in MakerLens Assets: a game link as the same link (kept in memory), a
+  // folder as its directory handle through IndexedDB (js/handoff.js), so it is not picked again.
+  // Counted by name only in GoatCounter ('switch-to-assets', js/analytics.js); the request gets
+  // a moment to leave before the page navigates.
+  const countSwitch = () => (typeof countEvent === 'function' ? countEvent('switch-to-assets') : Promise.resolve());
+  EL.switchGo.addEventListener('click', async () => {
+    if (S.remoteLink) {
+      const to = Remote.switchURL(S.remoteLink, 'assets');
+      EL.switchGo.setAttribute('aria-busy', 'true');
+      await countSwitch();
+      location.href = to;
+      return;
+    }
+    const to = Handoff.peerURL('assets', location.pathname);
+    if (!S.folderHandle || !to) return;
+    EL.switchGo.setAttribute('aria-busy', 'true');
+    try {
+      await Handoff.send(S.folderHandle);
+      await countSwitch();
+      location.href = to;
+    } catch (e) {
+      S.folderHandle = null;     // this browser cannot hand the folder over: stop offering it
+      syncSwitch();
+      alert('Could not hand this folder to MakerLens Assets. Open it there with Select Game Folder.');
+    }
   });
   EL.aboutBtn.addEventListener('click', () => EL.aboutModal.classList.add('open'));
   EL.aboutClose.addEventListener('click', () => EL.aboutModal.classList.remove('open'));
@@ -305,7 +328,7 @@ function init() {
   // the graph libraries: they are only needed once a map is drawn.
   Preboot.attach({
     dir: dir => openFolder(dir, FS_HANDLE),
-    entry: entry => openFolder(entry, FS_ENTRY),
+    entry: ({ entry, handle }) => openDropped(entry, handle),
     files: files => loadFolder(files),
     error: e => setStatus('err', 'Could not open folder: ' + e.message),
     loose: files => loadFolder(files),
@@ -319,4 +342,32 @@ function init() {
     },
   });
   loadGraphLibs();
+  openHandoff();
+}
+
+// A dropped folder: its directory handle when the browser gives one (so the switch to Assets
+// works), else the drag & drop entry.
+async function openDropped(entry, handlePromise) {
+  const h = await handlePromise;
+  return h && h.kind === 'directory' ? openFolder(h, FS_HANDLE) : openFolder(entry, FS_ENTRY);
+}
+
+// Arriving from MakerLens Assets: its folder is waiting in the handover. If the browser still
+// grants read access, open it; if it wants a click first, offer one on the start screen.
+async function openHandoff() {
+  const handle = await Handoff.receive();
+  if (!handle || Loader.active || S.mapFiles.size) return;
+  const open = () => openFolder(handle, FS_HANDLE);
+  if (await Handoff.permission(handle, false) === 'granted') { open(); return; }
+  EL.handoffName.textContent = handle.name;
+  EL.handoff.hidden = false;
+  EL.handoffGo.onclick = async () => {
+    EL.handoffGo.disabled = true;
+    const state = await Handoff.permission(handle, true);
+    EL.handoffGo.disabled = false;
+    if (state === 'granted') { EL.handoff.hidden = true; open(); return; }
+    EL.handoffNote.textContent = 'Access was not allowed. Choose the folder with Select Game Folder instead.';
+    EL.handoffNote.className = 'handoff-note err';
+  };
+  EL.handoffGo.focus();
 }

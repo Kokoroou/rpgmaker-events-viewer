@@ -47,12 +47,16 @@ var Preboot = (function () {
     e.preventDefault();
     if (P.ready) return;
     if (overlay) overlay.classList.remove('active');
-    var items = Array.prototype.slice.call(e.dataTransfer.items || []), entry = null;
+    var items = Array.prototype.slice.call(e.dataTransfer.items || []), entry = null, handle = null;
     for (var i = 0; i < items.length && !entry; i++) {
       var en = items[i].webkitGetAsEntry && items[i].webkitGetAsEntry();
-      if (en && en.isDirectory) entry = en;
+      if (en && en.isDirectory) {
+        entry = en;
+        // The handle too (Chrome/Edge), asked for now: the DataTransfer dies with the event.
+        handle = items[i].getAsFileSystemHandle ? items[i].getAsFileSystemHandle().catch(function () { return null; }) : null;
+      }
     }
-    if (entry) deliver('entry', entry);
+    if (entry) deliver('entry', { entry: entry, handle: handle });
     else if (e.dataTransfer.files.length) deliver('files', Array.prototype.slice.call(e.dataTransfer.files));
   });
 
