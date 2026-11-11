@@ -265,13 +265,23 @@ function init() {
 
   // The same game opens in MakerLens Assets: a game link as the same link (kept in memory), a
   // folder as its directory handle through IndexedDB (js/handoff.js), so it is not picked again.
+  // Counted by name only in GoatCounter ('switch-to-assets', js/analytics.js); the request gets
+  // a moment to leave before the page navigates.
+  const countSwitch = () => (typeof countEvent === 'function' ? countEvent('switch-to-assets') : Promise.resolve());
   EL.switchGo.addEventListener('click', async () => {
-    if (S.remoteLink) { location.href = Remote.switchURL(S.remoteLink, 'assets'); return; }
+    if (S.remoteLink) {
+      const to = Remote.switchURL(S.remoteLink, 'assets');
+      EL.switchGo.setAttribute('aria-busy', 'true');
+      await countSwitch();
+      location.href = to;
+      return;
+    }
     const to = Handoff.peerURL('assets', location.pathname);
     if (!S.folderHandle || !to) return;
     EL.switchGo.setAttribute('aria-busy', 'true');
     try {
       await Handoff.send(S.folderHandle);
+      await countSwitch();
       location.href = to;
     } catch (e) {
       S.folderHandle = null;     // this browser cannot hand the folder over: stop offering it
