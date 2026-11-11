@@ -36,7 +36,7 @@ Public URL: `https://makerlens.kokoroou.workers.dev/events/` — one Cloudflare 
 
 ### Start-up order
 
-`js/preboot.js` is the first script after the page (tiny, no dependencies): the Select Game Folder button, the folder input and folder drops work as soon as the page shows, before the other scripts have run; what is picked waits in `Preboot` until `init()` calls `Preboot.attach()`. The Cytoscape/dagre libraries are not in `index.html`: `loadGraphLibs()` (graph.js) injects them after `init()`, and `renderGraph()` / `renderEmptyPageNotice()` go through `graphReady()`, which shows "Loading the graph…" and re-runs the render once they are in. Keep new heavy scripts off the blocking path the same way.
+`js/preboot.js` is the first script after the page (tiny, no dependencies): the Select Game Folder button, the folder input, folder drops and the whole View another way dialog work as soon as the page shows, before the other scripts have run; what is picked waits in `Preboot` until `init()` calls `Preboot.attach()`. The Cytoscape/dagre libraries are not in `index.html`: `loadGraphLibs()` (graph.js) injects them after `init()`, and `renderGraph()` / `renderEmptyPageNotice()` go through `graphReady()`, which shows "Loading the graph…" and re-runs the render once they are in. Keep new heavy scripts off the blocking path the same way.
 
 ### Data flow
 
