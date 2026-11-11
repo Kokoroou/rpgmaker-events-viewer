@@ -11,6 +11,41 @@ function token(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
+/* ── Graph libraries (loaded after the app, so the folder picker is not kept waiting) ── */
+const GRAPH_LIBS = ['vendor/cytoscape/cytoscape.min.js', 'vendor/dagre/dagre.min.js', 'vendor/cytoscape-dagre/cytoscape-dagre.js'];
+let graphLibs = 0;          // 0 not started, 1 loading, 2 ready
+let afterGraphLibs = null;  // the render asked for while they were loading
+
+function loadGraphLibs() {
+  if (graphLibs) return;
+  graphLibs = 1;
+  const next = i => {
+    if (i === GRAPH_LIBS.length) {
+      graphLibs = 2;
+      hideLayoutNotice();
+      if (!cy && EL.graphView.classList.contains('visible')) initCy();
+      const run = afterGraphLibs; afterGraphLibs = null;
+      if (run) run();
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = GRAPH_LIBS[i];
+    s.onload = () => next(i + 1);
+    s.onerror = () => { graphLibs = 0; hideLayoutNotice(); setStatus('err', 'Could not load the graph library (' + GRAPH_LIBS[i] + ').'); };
+    document.head.appendChild(s);
+  };
+  next(0);
+}
+
+// True when the graph can be drawn; otherwise runs `again` as soon as the libraries are in.
+function graphReady(again) {
+  if (graphLibs === 2) return true;
+  afterGraphLibs = again;
+  showLayoutNotice('Loading the graph…');
+  loadGraphLibs();
+  return false;
+}
+
 /* ── Cytoscape instance ──────────────────────────────── */
 let cy = null;
 
@@ -19,6 +54,7 @@ function activeNodeColors() {
 }
 
 function initCy() {
+  if (graphLibs !== 2) return;   // graphReady() draws once the libraries are in
   if (cy) { cy.destroy(); cy = null; }
   cy = cytoscape({
     container: document.getElementById('cy'),
@@ -146,6 +182,7 @@ function cancelRender() {
 }
 
 function renderGraph(nodes, edges) {
+  if (!graphReady(() => renderGraph(nodes, edges))) return;
   if (!cy) initCy();
   const seq = ++renderSeq;
   hideLayoutNotice();   // a notice left by an older, superseded render

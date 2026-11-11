@@ -171,6 +171,7 @@ function playScene(sc, opts) {
 }
 
 function renderEmptyPageNotice() {
+  if (!graphReady(renderEmptyPageNotice)) return;
   if (!cy) initCy();
   cancelRender();
   cy.elements().remove();
@@ -330,4 +331,14 @@ function init() {
   EL.detailPanel.classList.add('hidden');
   EL.detailToggle.classList.remove('active');
   clearDetail();
+
+  // Take over what the user picked while this was loading (js/preboot.js), then fetch
+  // the graph libraries: they are only needed once a map is drawn.
+  Preboot.attach({
+    dir: dir => openFolder(dir, FS_HANDLE),
+    entry: entry => openFolder(entry, FS_ENTRY),
+    files: files => loadFolder(files),
+    error: e => setStatus('err', 'Could not open folder: ' + e.message),
+  });
+  loadGraphLibs();
 }

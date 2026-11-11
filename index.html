@@ -492,10 +492,8 @@
 <input type="file" id="folder-input" webkitdirectory multiple accept="">
 <input type="file" id="files-input" multiple accept=".json,application/json">
 
-<!-- Libraries -->
-<script src="vendor/cytoscape/cytoscape.min.js"></script>
-<script src="vendor/dagre/dagre.min.js"></script>
-<script src="vendor/cytoscape-dagre/cytoscape-dagre.js"></script>
+<!-- Folder picking works at once; the graph libraries (vendor/, see js/graph.js) load after the app -->
+<script src="js/preboot.js"></script>
 
 <!-- App -->
 <script src="js/constants.js"></script>
