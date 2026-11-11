@@ -100,7 +100,7 @@ Key fields:
 
 ### Read-only by design
 
-The tool never edits or exports game files. In-place dialogue editing and the map download were removed when the project joined the MakerLens brand, whose rules forbid editing or repackaging games (see MakerLens `docs/ROADMAP.md`, "Do not do"). Undo/redo (`history.js`) only covers node moves in the graph.
+The tool never edits or exports game files. In-place dialogue editing and the map download were removed when the project joined the MakerLens brand, whose rules forbid editing or repackaging games (see MakerLens `docs/ROADMAP.md`, "Do not do"). Nodes cannot be dragged either (`autoungrabify`), so there is no undo/redo.
 
 ### Sidebar search
 
