@@ -121,6 +121,8 @@ async function loadFiles(files, id, guard) {
       : dataPrefix ? filesRoot(fileMap, dataPrefix.replace(/data\/$/i, '')) : null);
     Media.reset(root, system);
   }
+  S.remoteLink = files.remoteLink || null;   // only a game link keeps one
+  EL.switchTool.hidden = !S.remoteLink;
   S.selectedMapId = null;
   S.selectedEvId = null;
   S.currentPage = null;
@@ -373,6 +375,7 @@ function openRemote(link) {
         text: () => api.blob(rel).then(b => b.text()),
       }));
     out.mediaRoot = remoteMedia(manifest.files, api);
+    out.remoteLink = link;   // kept for the switch button (memory only)
     return out;
   }, 'remote');
 }
