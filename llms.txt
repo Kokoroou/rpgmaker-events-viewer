@@ -1,0 +1,35 @@
+# MakerLens Events
+
+> Free, browser-based, read-only viewer for RPG Maker MV and MZ events. It shows the dialogue, choices, conditions, switches, variables, labels and jumps of map and common events as an interactive flow graph. Runs 100% client-side: game files are never uploaded.
+
+## What it does
+
+Open a released RPG Maker MV or MZ game (the game folder, or its `data/` folder) and MakerLens Events parses `MapInfos.json`, `Map###.json`, `CommonEvents.json`, `Actors.json` and `System.json` in your browser. Each event page is drawn as a flow graph, with switch, variable and actor names resolved from the game's data. No project, no editor, no plugin.
+
+- Dialogue (including speaker names), choices and their branches
+- Conditional branches with readable switch / variable conditions
+- Labels and jumps shown as dashed back-edges
+- Sidebar: maps in the editor's tree, common events, a scene list and search across maps and events
+- Scene preview: plays a dialogue scene with its pictures, face, music and sound, like the game would
+- Read-only: the game is never modified
+
+## Who it's for
+
+Guide and wiki writers, dataminers and speedrunners (what unlocks an ending or a hidden route), translators who need to know which branch a line belongs to, and developers or writers who want a bird's-eye view of tangled events. Not an editor: to change events, use the RPG Maker editor. Meant for games you own or have permission to inspect.
+
+## Use it
+
+- App: https://makerlens.kokoroou.workers.dev/events/
+- FAQ (which folder to open, what the graph shows, finding what unlocks an ending, switch names, privacy): https://makerlens.kokoroou.workers.dev/events/faq.html
+- Open Chrome or Edge for folder access; other browsers can pick the `data/` files one by one.
+
+## Related
+
+- MakerLens Assets (images and audio of the same game): https://makerlens.kokoroou.workers.dev/assets/
+- MakerLens home: https://makerlens.kokoroou.workers.dev/
+- Privacy (no uploads, anonymous page-view counter only): https://makerlens.kokoroou.workers.dev/assets/privacy.html
+
+## Source
+
+https://github.com/Kokoroou/rpgmaker-events-viewer
+License: MIT
