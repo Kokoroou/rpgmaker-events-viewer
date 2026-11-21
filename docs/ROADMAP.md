@@ -51,7 +51,7 @@ Effort: **S** (≤ 1 day), **M** (a few days), **L** (more than a week).
 
 | # | Item | Status |
 |---|------|--------|
-| 0.1 | Rename UI, title, meta and docs to **MakerLens Events**; title "RPG Maker Event Viewer — MV & MZ event flow graph" (now "Flow Graph & Scenes") | ✅ |
+| 0.1 | Rename UI, title, meta and docs to **MakerLens Events**; title "RPG Maker Event Viewer — MV & MZ event flow graph" (now "2000 to MZ, Graph & Scenes") | ✅ |
 | 0.2 | Reuse the MakerLens mark, green action colour and "Maker**Lens** + suffix" wordmark | ✅ |
 | 0.3 | Remove in-place dialogue editing and map JSON download (read-only, matches MakerLens "do not edit games") | ✅ |
 | 0.4 | Vendor Cytoscape, dagre, cytoscape-dagre; self-only CSP; no inline scripts | ✅ |
