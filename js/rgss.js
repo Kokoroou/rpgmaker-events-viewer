@@ -26,12 +26,13 @@ function rgssEngine(name) {
    nil/true/false/numbers → JS values; String → JS string (UTF-8); Symbol → string;
    Array → array; Hash → Map; Object → { __class, ...ivars without '@' };
    user _dump data ('u') → { __class, __data: Uint8Array }, Color/Tone → [4 numbers]. */
-function marshalLoad(bytes) {
+// start: where the stream begins; out.end gets where it ends (saves hold several streams).
+function marshalLoad(bytes, start = 0, out = null) {
   const u = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  if (u[0] !== 4 || u[1] !== 8) throw new Error('Not Ruby Marshal 4.8 data');
+  if (u[start] !== 4 || u[start + 1] !== 8) throw new Error('Not Ruby Marshal 4.8 data');
   const dec = new TextDecoder('utf-8');
   const syms = [], objs = [];
-  let pos = 2, depth = 0;
+  let pos = start + 2, depth = 0;
   const byte = () => {
     if (pos >= u.length) throw new Error('Marshal data ends early');
     return u[pos++];
@@ -154,7 +155,20 @@ function marshalLoad(bytes) {
       }
     } finally { depth--; }
   }
-  return value();
+  const v = value();
+  if (out) out.end = pos;
+  return v;
+}
+
+// Every Marshal stream written one after the other (RGSS save files: XP and VX dump each
+// game object in turn, VX Ace a header then the contents).
+function marshalLoadAll(bytes) {
+  const u = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const values = [], out = {};
+  for (let at = 0; at < u.length && values.length < 64; at = out.end) {
+    values.push(marshalLoad(u, at, out));
+  }
+  return values;
 }
 
 /* ── RGSS → MV shapes ── */

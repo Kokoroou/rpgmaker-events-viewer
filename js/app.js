@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'scan-status','switch-tool','switch-go','setup-status','handoff','handoff-name','handoff-note','handoff-go','event-breadcrumb','page-tabs',
     'event-picker','event-list-grid','detail-panel','detail-body',
     'open-btn','about-btn','about-modal','about-close','theme-toggle',
-    'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play',
+    'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play','save-btn','save-label','save-input',
   ].forEach(id => { EL[id.replace(/-([a-z])/g, (_,c)=>c.toUpperCase())] = document.getElementById(id); });
   EL.graphView = document.getElementById('graph-view');
   EL.sbResizer = document.getElementById('sb-resizer');
@@ -145,7 +145,8 @@ function selectPage(pi) {
   if (!ev || !ev.pages[pi]) return;
 
   S.currentPage = ev.pages[pi];
-  setSceneEntry({ title: ev.name, sub: `${mapData.mapName} · event ${ev.id}, page ${pi + 1}`, list: ev.pages[pi].list });
+  setSceneEntry({ title: ev.name, sub: `${mapData.mapName} · event ${ev.id}, page ${pi + 1}`, list: ev.pages[pi].list,
+    mapId: S.selectedMapId, evId: ev.id });
   const prefix = `map${S.selectedMapId}_ev${S.selectedEvId}_p${pi}`;
   const { nodes, edges } = parseEventPage(ev.pages[pi].list, prefix);
 
@@ -160,6 +161,21 @@ function setSceneEntry(entry) {
   const s = entry && sceneStats(entry.list);
   S.sceneEntry = s && (s.pictures || s.messages) ? entry : null;
   if (EL.scenePlay) EL.scenePlay.hidden = !S.sceneEntry;
+}
+
+// The toolbar's save button: its file name while a save is in use (error: shown for a moment).
+let saveErrTimer = 0;
+function syncSave(error) {
+  if (!EL.saveBtn) return;
+  clearTimeout(saveErrTimer);
+  const on = !!S.save;
+  EL.saveBtn.classList.toggle('on', on);
+  EL.saveBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  EL.saveLabel.textContent = error ? 'Save not read' : on ? `Save: ${S.save.name}` : 'Use a save';
+  EL.saveBtn.title = error || (on
+    ? `Scenes start from the switches and variables of ${S.save.name}. Click to stop using it.`
+    : 'Preview scenes with the switches and variables of a save file (it stays on your device)');
+  if (error) saveErrTimer = setTimeout(() => syncSave(), 5000);
 }
 
 // A scene from the sidebar (or the player's next / previous scene): show it in the
@@ -255,6 +271,24 @@ function init() {
   });
 
   EL.scenePlay.addEventListener('click', () => { if (S.sceneEntry) openScene(S.sceneEntry); });
+
+  // A save file (save.js): scenes then start from its switches and variables. Click again to drop it.
+  EL.saveBtn.addEventListener('click', () => {
+    if (S.save) { S.save = null; syncSave(); }
+    else EL.saveInput.click();
+  });
+  EL.saveInput.addEventListener('change', async e => {
+    const f = e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    try {
+      S.save = await readSave(f.name, await f.arrayBuffer());
+      syncSave();
+    } catch (err) {
+      S.save = null;
+      syncSave('Save not read: ' + ((err && err.message) || err));
+    }
+  });
 
   initSearch();
   openFromAddress();

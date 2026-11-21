@@ -152,6 +152,8 @@ async function loadFiles(files, id, guard) {
   S.commonEvents = cevs ? parseCommonEvents(cevs) : [];
   S.maps = new Map();
   S.dataExt = ext;
+  S.save = null;   // a save belongs to the game it came from (save.js)
+  if (typeof syncSave === 'function') syncSave();
   S.mapFiles = new Map([...mapFiles].sort((a, b) => a[0] - b[0]));
   // The game folder (parent of data/), for the scene player's pictures and audio (media.js).
   if (typeof Media !== 'undefined') {

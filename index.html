@@ -210,6 +210,9 @@
         </button>
         <span id="event-breadcrumb"></span>
         <div id="page-tabs" role="tablist" aria-label="Event pages"></div>
+        <button class="btn-ghost btn-sm" id="save-btn" type="button" title="Preview scenes with the switches and variables of a save file (it stays on your device)">
+          <svg width="14" height="14" aria-hidden="true"><use href="#i-file"/></svg><span id="save-label">Use a save</span>
+        </button>
         <button class="btn-primary btn-sm" id="scene-play" type="button" hidden title="Preview this scene with its pictures, dialogue and sound">
           <svg width="14" height="14" aria-hidden="true"><use href="#i-play"/></svg>Preview
         </button>
@@ -509,6 +512,7 @@
 
 <!-- Hidden fallback file input -->
 <input type="file" id="folder-input" webkitdirectory multiple accept="">
+<input type="file" id="save-input" accept=".rpgsave,.rmmzsave,.rvdata2,.rvdata,.rxdata">
 <input type="file" id="files-input" multiple accept=".json,application/json,.rvdata2,.rvdata,.rxdata,.rgss3a,.rgss2a,.rgssad">
 
 <!-- Folder picking works at once; the graph libraries (vendor/, see js/graph.js) load after the app -->
@@ -527,6 +531,7 @@
 <script src="js/media.js"></script>
 <script src="js/decrypt-rgssad.js"></script>
 <script src="js/rgss.js"></script>
+<script src="js/save.js"></script>
 <script src="js/player.js"></script>
 <script src="js/search.js"></script>
 <script src="js/sidebar.js"></script>

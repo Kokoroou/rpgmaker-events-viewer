@@ -24,6 +24,10 @@
 /* Page tabs: pill chips like Assets' filter type buttons */
 #page-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 #scene-play[hidden] { display: none; }
+#save-btn { margin-left: auto; max-width: 220px; }
+#save-btn #save-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#save-btn.on { color: var(--a); border-color: var(--a); }
+#save-btn.on svg { color: var(--a); }
 .page-tab {
   display: inline-flex; align-items: center; justify-content: center;
   height: 32px; padding: 0 12px;

@@ -22,4 +22,5 @@ const S = {
   searchExpanded:   { scenes: false, events: false },   // every result, not the first few
   folderHandle:     null,       // directory handle of the open folder, for the switch to Assets (memory only; js/handoff.js)
   sceneEntry:       null,       // what the toolbar's Preview button plays (player.js)
+  save:             null,       // an open save file (save.js): switches, variables, self switches, actors, party (memory only)
 };
