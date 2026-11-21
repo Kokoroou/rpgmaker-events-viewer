@@ -27,4 +27,15 @@
   #scan-status          { display: none; }
   #about-panel          { padding: 22px 18px; }
   .sb-item, .sb-folder  { min-height: 44px; }
+
+  /* The sidebar is a drawer over the graph, closed until the menu button opens it */
+  #sidebar {
+    position: absolute; top: 0; bottom: 0; left: 0; z-index: 20;
+    width: min(85vw, 320px) !important;
+    box-shadow: var(--shadow-lg);
+  }
+  #sidebar.hidden { box-shadow: none; }
+  #sb-resizer { display: none; }
+  #sb-scrim { position: absolute; inset: 0; z-index: 19; background: rgb(0 0 0 / .35); }
 }
+#sb-scrim[hidden] { display: none; }
