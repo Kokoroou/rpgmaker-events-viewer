@@ -63,6 +63,17 @@ function syncSwitch() {
   if (EL.switchGo && EL.switchGo.removeAttribute) EL.switchGo.removeAttribute('aria-busy');
 }
 
+/* ── Sidebar (a column; on phones a drawer over the page) ── */
+const PHONE = typeof matchMedia === 'function' ? matchMedia('(max-width: 600px)') : null;
+function isPhone() { return !!(PHONE && PHONE.matches); }
+function setSidebar(open) {
+  const m = open ? 'remove' : 'add';
+  EL.sidebar.classList[m]('hidden');
+  EL.sbResizer.classList[m]('hidden');
+  if (EL.sbScrim) EL.sbScrim.hidden = !(open && isPhone());
+  if (EL.sidebarToggle) EL.sidebarToggle.setAttribute('aria-pressed', open ? 'true' : 'false');
+}
+
 function failLoad(message) {
   setStatus('err', message);
   Loader.fail(message);
@@ -207,8 +218,7 @@ async function loadFiles(files, id, guard, name) {
   Loader.commit();
   setStatus('info', SPINNER + 'Reading maps…');
   renderSidebar();
-  EL.sidebar.classList.remove('hidden');
-  EL.sbResizer.classList.remove('hidden');
+  setSidebar(!isPhone());   // phones: a drawer, closed until the menu button opens it
   showMapProgress();
 
   S.bgDone = readMapsInBackground(id);

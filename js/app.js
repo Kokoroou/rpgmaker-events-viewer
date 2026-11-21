@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ].forEach(id => { EL[id.replace(/-([a-z])/g, (_,c)=>c.toUpperCase())] = document.getElementById(id); });
   EL.graphView = document.getElementById('graph-view');
   EL.sbResizer = document.getElementById('sb-resizer');
+  EL.sbScrim = document.getElementById('sb-scrim');
 
   init();
 });
@@ -258,10 +259,12 @@ function init() {
     }
   });
 
-  EL.sidebarToggle.addEventListener('click', () => {
-    const hidden = EL.sidebar.classList.toggle('hidden');
-    EL.sbResizer.classList.toggle('hidden', hidden);
-    EL.sidebarToggle.setAttribute('aria-pressed', hidden ? 'false' : 'true');
+  EL.sidebarToggle.addEventListener('click', () => setSidebar(EL.sidebar.classList.contains('hidden')));
+  // Phones: the sidebar is a drawer over the page; picking an item or tapping outside closes it.
+  EL.sbScrim.addEventListener('click', () => setSidebar(false));
+  if (PHONE && PHONE.addEventListener) PHONE.addEventListener('change', () => { EL.sbScrim.hidden = true; });
+  EL.sidebar.addEventListener('click', e => {
+    if (isPhone() && e.target.closest('.sb-item')) setSidebar(false);
   });
 
   EL.detailToggle.addEventListener('click', () => {

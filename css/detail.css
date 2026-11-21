@@ -68,9 +68,6 @@
     border-radius: var(--r-lg) var(--r-lg) 0 0;
     box-shadow: var(--shadow-lg);
   }
-  #detail-panel.hidden { width: auto; }
-  #detail-panel.hidden #detail-header { justify-content: space-between; padding: 8px 8px 8px 16px; border-bottom: none; }
-  #detail-panel.hidden #detail-header-title { display: block; }
-  #detail-panel.hidden #detail-toggle svg { transform: none; }
+  #detail-panel.hidden { display: none; }   /* opens when a node is tapped (showDetail) */
   #graph-controls { top: 12px; bottom: auto; right: 12px; }
 }
