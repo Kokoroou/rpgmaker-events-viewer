@@ -36,13 +36,32 @@ const SCENE_LOOKAHEAD_COMMANDS = 20000;
 const SCENE_LOOKAHEAD_BUDGET = 400000;  // commands tried ahead per timeline: then unknown checks take "true"
 const SCENE_MAX_FRAMES = 240;           // animation frames kept per step
 
-function sceneState(list) {
-  return {
+// ctx: { mapId, evId } of a map event page (its self switches), or nothing.
+function sceneState(list, ctx) {
+  const st = {
     frames: [sceneFrame(list)], pics: {}, bgm: null, bgs: null, savedBgm: null, fade: false, ran: 0, sw: {}, vars: {}, ne: {},
     look: { left: SCENE_LOOKAHEAD_BUDGET },   // shared by the copies
     actors: {}, party: null,                  // changes to the starting actors / party
     picVar: false, target: null, dname: null, // PictureVariableSetting
   };
+  sceneFromSave(st, ctx);
+  return st;
+}
+
+// With a save file open (save.js, S.save) every switch and variable is known from the
+// start: unset ones are OFF / 0, as in the game. Self switches only for a map event.
+function sceneFromSave(st, ctx) {
+  const save = typeof S !== 'undefined' && S.save;
+  if (!save) return;
+  const top = (o, names) => Math.max(names ? names.length - 1 : 0, ...Object.keys(o).map(Number), 0);
+  for (let id = 1, n = top(save.switches, S.switches); id <= n; id++) st.sw[id] = save.switches[id] === true;
+  for (let id = 1, n = top(save.variables, S.variables); id <= n; id++) {
+    const v = save.variables[id];
+    st.vars[id] = v === null || v === undefined ? 0 : v;
+  }
+  if (ctx && ctx.mapId && ctx.evId) {
+    for (const ch of ['A', 'B', 'C', 'D']) st.sw['self:' + ch] = !!save.self[`${ctx.mapId},${ctx.evId},${ch}`];
+  }
 }
 
 function sceneFrame(list) {
@@ -146,10 +165,11 @@ function sceneControlVariables(st, p) {
 
 /* ── Actors: the game's starting state ──
    S.actorStart[id] = { name, classId, equips } from Actors.json and S.party from
-   System.json (loader.js). The scene's own changes live in st.actors / st.party. */
+   System.json (loader.js), or the save's (S.save) when one is open. The scene's own
+   changes live in st.actors / st.party. */
 function sceneActor(st, id) {
   if (st.actors[id]) return st.actors[id];
-  const a = typeof S !== 'undefined' && S.actorStart && S.actorStart[id];
+  const a = typeof S !== 'undefined' && ((S.save && S.save.actors[id]) || (S.actorStart && S.actorStart[id]));
   return a ? { name: a.name || '', classId: a.classId || 0, equips: (a.equips || []).slice() } : null;
 }
 
@@ -159,7 +179,7 @@ function sceneActorEdit(st, id) {
 }
 
 function sceneParty(st) {
-  return st.party || (typeof S !== 'undefined' && S.party) || [];
+  return st.party || (typeof S !== 'undefined' && ((S.save && S.save.party) || S.party)) || [];
 }
 
 // Conditional Branch on an actor: [4, actorId, 0 in party / 1 name / 2 class / 3 skill /
@@ -642,8 +662,8 @@ function sceneRun(st, getCommon) {
   return steps;
 }
 
-function sceneTimeline(list, getCommon) {
-  return sceneRun(sceneState(list), getCommon);
+function sceneTimeline(list, getCommon, ctx) {
+  return sceneRun(sceneState(list, ctx), getCommon);
 }
 
 // The viewer picked choice k at step i: the timeline from there follows that branch.

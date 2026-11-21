@@ -106,10 +106,10 @@ const Player = {
     const auto = cont && this.auto;
     this.stop(cont);
     this.list = entry.list;
-    this.steps = sceneTimeline(entry.list, playerCommon);
+    this.steps = sceneTimeline(entry.list, playerCommon, { mapId: entry.mapId, evId: entry.evId });
     this.missing = new Set();
     this.el.title.textContent = entry.title || 'Scene';
-    this.el.sub.textContent = entry.sub || '';
+    this.el.sub.textContent = (entry.sub || '') + (S.save ? ` · from ${S.save.name}` : '');
     if (!cont) {
       this.el.root.hidden = false;
       document.body.classList.add('pl-open');

@@ -45,6 +45,7 @@ Part of the **[MakerLens](https://makerlens.kokoroou.workers.dev/)** family: use
 |--------|--------|
 | RPG Maker MV | Supported |
 | RPG Maker MZ | Supported |
+| Save files | Optional: **Use a save** reads `.rpgsave` / `.rmmzsave` / `.rvdata2` / `.rvdata` / `.rxdata` so scene previews start from its switches and variables (read-only, stays in the browser) |
 | RPG Maker VX Ace / VX / XP | Supported: `Data/*.rvdata2` / `.rvdata` / `.rxdata` (Ruby Marshal, `js/rgss.js`), also read from `Game.rgss3a` / `.rgss2a` / `.rgssad` |
 
 ## Node Types

@@ -122,6 +122,14 @@
     },
     {
       "@type": "Question",
+      "name": "Can a scene follow my own save file?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Press Use a save in the toolbar and pick a save of the open game: www/save/file1.rpgsave (MV), save/file1.rmmzsave (MZ), Save01.rvdata2 (VX Ace), Save1.rvdata (VX) or Save1.rxdata (XP). Scenes then start from that save's switches, variables, self switches, actor names and equipment, and party, so a condition takes the branch your game would take instead of a guess. The save is only read, in your browser: it is never changed or uploaded, and it is dropped when you press the button again or open another game."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "Which branch does a line of dialogue belong to?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -250,6 +258,10 @@
     <details>
       <summary><h3>Can I play a scene with its pictures and sound?</h3></summary>
       <p>Yes. Scenes, the common events and event pages that show pictures together with dialogue, are listed under Scenes at the top of the sidebar, and the Preview button plays the page on screen. The player dims the page and shows the scene at the game's screen size, line by line, with its pictures, picture animations, face graphics, music and sound effects. Messages type themselves out at an reading speed of 300 words a minute (T or the T button shows whole lines instead); click or press → to continue, ← to go back, A for auto play, which leaves each line on screen for two more seconds once it is shown in full; choices are offered as buttons. At the end of a scene the next one in the Scenes list follows on, and going back from the first line opens the previous one (Shift+→ and Shift+← skip a whole scene). H or the eye button hides the dialogue so you can see the pictures; a click brings it back. When a picture depends on the hero's state, such as the outfit they wear, the player shows the game's starting state. Open the game's root folder (not <code>data/</code>) so the pictures and audio can be found: encrypted files are decrypted in memory, never saved or uploaded. Simple scripts that show or erase pictures or set variables are followed; other effects made by plugins or scripts are not played.</p>
+    </details>
+    <details>
+      <summary><h3>Can a scene follow my own save file?</h3></summary>
+      <p>Yes. Press <strong>Use a save</strong> in the toolbar and pick a save of the open game: <code>www/save/file1.rpgsave</code> (MV), <code>save/file1.rmmzsave</code> (MZ), <code>Save01.rvdata2</code> (VX Ace), <code>Save1.rvdata</code> (VX) or <code>Save1.rxdata</code> (XP). Scenes then start from that save's switches, variables, self switches, actor names and equipment, and party, so a condition takes the branch your game would take instead of a guess. The save is only read, in your browser: it is never changed or uploaded, and it is dropped when you press the button again or open another game.</p>
     </details>
     <details>
       <summary><h3>Which branch does a line of dialogue belong to?</h3></summary>
