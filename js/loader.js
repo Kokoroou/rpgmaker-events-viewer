@@ -319,8 +319,9 @@ function finishLoad() {
     return;
   }
   const totalEvents = [...S.maps.values()].reduce((s, m) => s + m.events.length, 0);
-  EL.scanStatus.textContent = `${S.maps.size} maps · ${totalEvents} events`;
-  setStatus('ok', `Loaded ${S.maps.size} maps with ${totalEvents} events and ${S.commonEvents.length} common events.`);
+  const n = (k, word) => `${k} ${word}${k === 1 ? '' : 's'}`;
+  EL.scanStatus.textContent = `${n(S.maps.size, 'map')} · ${n(totalEvents, 'event')}`;
+  setStatus('ok', `Loaded ${n(S.maps.size, 'map')} with ${n(totalEvents, 'event')} and ${n(S.commonEvents.length, 'common event')}.`);
   renderSidebar();
 }
 

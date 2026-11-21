@@ -104,7 +104,18 @@ function showEventPicker(mapId) {
       card.appendChild(badge);
     }
     card.addEventListener('click', () => selectEvent(mapId, ev.id, Math.max(0, scene)));
-    grid.appendChild(card);
+    if (scene < 0) { grid.appendChild(card); continue; }
+    // A scene can be played straight from its card (a sibling button: buttons do not nest).
+    const wrap = el('div', 'ev-card-wrap');
+    const play = el('button', 'btn-primary btn-sm ev-card-play');
+    play.type = 'button';
+    play.title = 'Preview this scene with its pictures, dialogue and sound';
+    play.setAttribute('aria-label', `Preview scene ${ev.name}`);
+    play.appendChild(icon('play', 14));
+    play.appendChild(document.createTextNode('Preview'));
+    play.addEventListener('click', () => playScene({ kind: 'map', mapId, evId: ev.id, page: scene }));
+    wrap.append(card, play);
+    grid.appendChild(wrap);
   }
 }
 
@@ -296,7 +307,7 @@ function init() {
   initSearch();
   openFromAddress();
 
-  EL.cyFit.addEventListener('click', () => cy?.fit(undefined, 32));
+  EL.cyFit.addEventListener('click', fitGraph);
   EL.cyZoomIn.addEventListener('click',  () => cy?.zoom({ level: cy.zoom() * 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
   EL.cyZoomOut.addEventListener('click', () => cy?.zoom({ level: cy.zoom() / 1.3, renderedPosition: { x: cy.width()/2, y: cy.height()/2 } }));
 
