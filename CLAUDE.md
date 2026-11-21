@@ -43,6 +43,7 @@ Public URL: `https://makerlens.kokoroou.workers.dev/events/` — one Cloudflare 
 ```
 Folder picker / drop
   → findDataFiles() [loader.js] — breadth-first to the first folder with Map###.json
+      (or .rvdata2/.rvdata/.rxdata, or a Game.rgss3a/.rgss2a/.rgssad archive at that level)
       (data/ first, www/data/ for MV), skipping img/ audio/ movies/…; returns lazy
       file-likes for data/*.json only (FS_HANDLE / FS_ENTRY adapters; FS_ENTRY loops
       readEntries(), which returns at most ~100 entries per call)
@@ -69,6 +70,10 @@ Folder picker / drop
       → sceneTimeline(list) [scene-script.js] → steps
       → Media.image()/audio() [media.js]: img/ and audio/ read one file at a time
 ```
+
+### RPG Maker VX Ace / VX / XP (`js/rgss.js`, no DOM, tested in node)
+
+Their data is Ruby Marshal (`.rvdata2` / `.rvdata` / `.rxdata`). `marshalLoad()` reads it (Hash → `Map`, objects → `{ __class, …ivars }`, Color/Tone → 4 numbers); `rgssData(kind, value, engine)` turns MapInfos / Map### / CommonEvents / Actors / System into MV's JSON shapes, so the parser, scenes and search run unchanged. `rgssList()` converts what differs: XP's 101 holds the first line (→ 101 + 401), XP/VX Control Variables operands 3–7 and actor conditions (no class), equipment slot → type (+1); AudioFile → `{name, volume, pitch, pan}`, MoveRoute → MV's object. `readGameData(file, name)` picks JSON or Marshal by extension; the engine is the map files' extension (`S.dataExt`). Released games pack `Data/` in an archive: `expandArchive()` (loader.js) lists it with `js/decrypt-rgssad.js` (same file as MakerLens Assets; the archive is read once, each file sliced and decrypted when read), and the scene player gets the archive's files plus the folder's (`unionRoot`), with `img/` mapped to `Graphics/` (`rgssMediaRoot`) and the engine's screen size (XP 640×480, VX/VX Ace 544×416). Fixtures are written with `tests/marshal-writer.mjs` (a small Marshal writer), never real game data.
 
 ### Game link ("View another way")
 

@@ -10,10 +10,11 @@
 //    before that keeps what was on screen.
 
 const SPINNER = '<span class="status-spinner" aria-hidden="true"></span> ';
-const MAP_FILE  = /^Map(\d{3})\.json$/i;
-const DATA_FILE = /^(MapInfos|Actors|System|CommonEvents|Map\d{3})\.json$/i;
+// MV/MZ .json, or XP/VX/VX Ace Ruby Marshal data (js/rgss.js).
+const MAP_FILE  = /^Map(\d{3})\.(json|rvdata2|rvdata|rxdata)$/i;
+const DATA_FILE = /^(MapInfos|Actors|System|CommonEvents|Map\d{3})\.(json|rvdata2|rvdata|rxdata)$/i;
 // Folders a game ships that never hold data/: skipped when looking for it.
-const SKIP_DIRS = /^(img|audio|movies|fonts|effects|icon|js|css|save|locales?|node_modules|\.git)$/i;
+const SKIP_DIRS = /^(img|audio|graphics|movies|fonts|effects|icon|js|css|save|locales?|node_modules|\.git)$/i;
 const DATA_DEPTH = 3;   // root/, game/, game/www/, game/www/data/
 
 let seq = 0;                // id of the latest load started
@@ -66,7 +67,33 @@ function failLoad(message) {
   Loader.fail(message);
 }
 
+// XP / VX / VX Ace games usually ship Data/ inside Game.rgss3a (or .rgss2a/.rgssad):
+// when no map file is in hand but an archive is, its Data/ files take their place and
+// its Graphics/ (plus the folder's own Audio/) serve the scene player.
+async function expandArchive(files, guard) {
+  const isMap = f => MAP_FILE.test(f.name || '');
+  const arch = files.find(f => RGSS_ARCHIVE.test(f.name || ''));
+  if (!arch || files.some(isMap)) return files;
+  Loader.detail('detect', 'reading ' + arch.name + '…');
+  const entries = await archiveFiles(arch.file ? await arch.file() : arch);
+  guard();
+  const inArchive = new Map(entries.map(e => [e.path, e]));
+  const out = entries.filter(e => /^data\/[^/]+$/i.test(e.path) && DATA_FILE.test(e.name))
+    .map(e => ({ name: e.name, _dragPath: e.path, text: e.text, arrayBuffer: e.arrayBuffer }));
+  if (typeof Media !== 'undefined') {   // the scene player's files (media.js)
+    const rel = f => (f._dragPath || f.webkitRelativePath || f.name).replace(/\\/g, '/');
+    const dir = rel(arch).replace(/[^/]*$/, '');   // the folder holding the archive (the game root)
+    const folder = files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
+      : filesRoot(new Map(files.filter(f => f !== arch).map(f => [rel(f), f])), dir);
+    out.mediaRoot = unionRoot(filesRoot(inArchive, ''), folder);
+  }
+  out.folderHandle = files.folderHandle;
+  out.remoteLink = files.remoteLink;
+  return out;
+}
+
 async function loadFiles(files, id, guard) {
+  files = await expandArchive(files, guard);
   const fileMap = new Map();
   for (const f of files) {
     const rel = (f._dragPath || f.webkitRelativePath || f.name).replace(/\\/g, '/');
@@ -80,26 +107,28 @@ async function loadFiles(files, id, guard) {
   }
 
   const mapFiles = new Map();   // mapId → file, in id order
+  let ext = 'json';             // one engine per game: the map files' extension (json for MV/MZ)
   for (const [path, file] of fileMap) {
     const m = path.split('/').pop().match(MAP_FILE);
-    if (m && (!dataPrefix || path.startsWith(dataPrefix))) mapFiles.set(parseInt(m[1], 10), file);
+    if (m && (!dataPrefix || path.startsWith(dataPrefix))) { mapFiles.set(parseInt(m[1], 10), file); ext = m[2].toLowerCase(); }
   }
 
   if (!dataPrefix && mapFiles.size === 0) {
     return failLoad('No RPG Maker data folder found. Make sure to select the game root or data/ folder.');
   }
-  if (mapFiles.size === 0) return failLoad('No Map###.json files found in the data folder.');
+  if (mapFiles.size === 0) return failLoad('No map files (Map###.json, .rvdata2, .rvdata or .rxdata) found in the data folder.');
+  const engine = typeof rgssEngine === 'function' ? rgssEngine('.' + ext) : null;
   Loader.step('detect', 'done', `${mapFiles.size} map file${mapFiles.size === 1 ? '' : 's'}`);
 
   // ── read: the four small files, in parallel ──
-  const names = ['MapInfos.json', 'Actors.json', 'System.json', 'CommonEvents.json'];
+  const names = ['MapInfos', 'Actors', 'System', 'CommonEvents'].map(n => n + '.' + ext);
   let read = 0;
   Loader.step('read', 'active', `0/${names.length}`);
   Loader.progress(0, names.length);
   const [infos, actors, system, cevs] = await Promise.all(names.map(async name => {
     const f = findFile(fileMap, dataPrefix, name);
     let json = null;
-    if (f) { try { json = JSON.parse(await f.text()); } catch {} }
+    if (f) { try { json = await readGameData(f, name); } catch {} }
     Loader.detail('read', `${++read}/${names.length}`);
     Loader.progress(read, names.length);
     return json;
@@ -122,11 +151,13 @@ async function loadFiles(files, id, guard) {
   S.switches     = (system && system.switches)  || [];
   S.commonEvents = cevs ? parseCommonEvents(cevs) : [];
   S.maps = new Map();
+  S.dataExt = ext;
   S.mapFiles = new Map([...mapFiles].sort((a, b) => a[0] - b[0]));
   // The game folder (parent of data/), for the scene player's pictures and audio (media.js).
   if (typeof Media !== 'undefined') {
-    const root = files.mediaRoot || (files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
+    let root = files.mediaRoot || (files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
       : dataPrefix ? filesRoot(fileMap, dataPrefix.replace(/data\/$/i, '')) : null);
+    if (engine) root = rgssMediaRoot(root);   // Graphics/ where MV has img/
     Media.reset(root, system);
   }
   S.remoteLink = files.remoteLink || null;   // only a game link keeps one
@@ -169,7 +200,7 @@ async function openMap(mapId) {
 async function readMap(mapId, id) {
   const file = S.mapFiles.get(mapId);
   let data = null;
-  try { data = parseMapJson(JSON.parse(await file.text()), mapId, S.mapInfos); } catch {}
+  try { data = parseMapJson(await readGameData(file, `Map${String(mapId).padStart(3, '0')}.${S.dataExt || 'json'}`), mapId, S.mapInfos); } catch {}
   if (id !== current) return null;   // another game was opened meanwhile
   S.mapFiles.delete(mapId);
   if (data && data.events.length > 0) S.maps.set(mapId, data);
@@ -310,11 +341,18 @@ async function findDataFiles(root, fs, onDir) {
       if (onDir) onDir(path);
       const kids = await fs.list(dir);
       const files = kids.filter(k => !k.isDir && DATA_FILE.test(k.name));
+      const arch = kids.find(k => !k.isDir && RGSS_ARCHIVE.test(k.name));
+      if (arch && !files.some(k => MAP_FILE.test(k.name))) {   // XP/VX/VX Ace: Data/ is in the archive
+        const out = [{ name: arch.name, _dragPath: path + arch.name, file: () => fs.file(arch.node) }];
+        out.gameRoot = { fs, node: dir };
+        return out;
+      }
       if (files.some(k => MAP_FILE.test(k.name))) {
         const out = files.map(k => ({
           name: k.name,
           _dragPath: path + k.name,
           text: () => fs.file(k.node).then(f => f.text()),
+          arrayBuffer: () => fs.file(k.node).then(f => f.arrayBuffer()),
         }));
         out.gameRoot = parent ? { fs, node: parent } : null;
         return out;
