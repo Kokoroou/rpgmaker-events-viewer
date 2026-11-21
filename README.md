@@ -16,7 +16,7 @@ Part of the **[MakerLens](https://makerlens.kokoroou.workers.dev/)** family: use
 
 ## Features
 
-- Drag-and-drop or click to open any RPG Maker MV/MZ game folder
+- Drag-and-drop or click to open any RPG Maker game folder (MV, MZ, VX Ace, VX, XP, 2000, 2003)
 - Parses `Map###.json`, `CommonEvents.json`, and `MapInfos.json`
 - Renders event command flow as an interactive Cytoscape.js node graph
 - Supports dialogue (101/401), choices (102/402), conditions (111/411), labels (118), and jumps (119)
