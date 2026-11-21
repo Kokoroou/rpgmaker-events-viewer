@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { c, load, plain } from './helpers.mjs';
+import { marshal, obj, rgss3a } from './marshal-writer.mjs';
 
 // A fake File: what loadFolder() reads from <input webkitdirectory> or the folder picker.
 const file = (path, json) => ({
@@ -23,9 +24,9 @@ function setup() {
     close() { Loader.active = false; calls.closed++; },
     check() { if (calls.cancel) throw new DOMException('cancelled', 'AbortError'); },
   };
-  const get = load(['constants.js', 'parser.js', 'state.js', 'loader.js'], {
+  const get = load(['constants.js', 'parser.js', 'state.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: cls() }, sbResizer: { classList: cls() } },
-    setTimeout, clearTimeout, DOMException, Loader,
+    setTimeout, clearTimeout, DOMException, Loader, TextDecoder, TextEncoder,
   });
   // UI functions from other files, replaced with recorders.
   get('globalThis').__calls = calls;
@@ -74,6 +75,46 @@ test('loads a game folder: map tree, names, common events and maps with events',
   assert.equal(S.mapFiles.size, 0);                // every map was read in the background
   assert.equal(calls.status.at(-1)[0], 'ok');
   assert.match(calls.status.at(-1)[1], /2 maps with 2 events and 1 common events/);
+});
+
+// RPG Maker XP data (Ruby Marshal, js/rgss.js) as Files of a picked folder.
+const bin = (path, bytes) => ({ name: path.split('/').pop(), webkitRelativePath: path,
+  arrayBuffer: async () => bytes.buffer, text: async () => new TextDecoder().decode(bytes) });
+const cmd = (code, indent, parameters) => obj('RPG::EventCommand', { code, indent, parameters });
+const xpData = {
+  'MapInfos.rxdata': new Map([[1, obj('RPG::MapInfo', { name: 'Castle', parent_id: 0, order: 1, expanded: true })]]),
+  'Actors.rxdata': [null, obj('RPG::Actor', { id: 1, name: 'Aluxes', class_id: 1, weapon_id: 1, armor1_id: 0, armor2_id: 0, armor3_id: 0, armor4_id: 0 })],
+  'System.rxdata': obj('RPG::System', { switches: [null, 'Door open'], variables: [null, 'Steps'], party_members: [1] }),
+  'CommonEvents.rxdata': [null, obj('RPG::CommonEvent', { id: 1, name: 'Bell', trigger: 0, switch_id: 1, list: [cmd(0, 0, [])] })],
+  'Map001.rxdata': obj('RPG::Map', { events: new Map([[2, obj('RPG::Event', { id: 2, name: 'King', x: 1, y: 1,
+    pages: [obj('RPG::Event::Page', { list: [cmd(101, 0, ['Welcome']), cmd(0, 0, [])] })] })]]) }),
+};
+
+test('loads an RPG Maker XP game: Data/*.rxdata through Marshal', async () => {
+  const { get, calls } = setup();
+  await get('loadFolder')(Object.entries(xpData).map(([n, v]) => bin('XPGame/Data/' + n, marshal(v))));
+  await get('S.bgDone');
+  const S = get('S');
+  assert.equal(calls.failed.length, 0, calls.failed.join());
+  assert.deepEqual(plain(S.mapInfos), { 1: { name: 'Castle', parentId: 0, order: 1, expanded: true } });
+  assert.deepEqual(plain(S.actors), ['', 'Aluxes']);
+  assert.deepEqual(plain(S.switches), ['', 'Door open']);
+  assert.deepEqual(plain(S.commonEvents.map(e => e.name)), ['Bell']);
+  const list = plain(S.maps.get(1).events[0].pages[0].list);
+  assert.deepEqual(list.slice(0, 2), [c(101, 0, ['', 0, 0, 2]), c(401, 0, ['Welcome'])]);
+  assert.equal(S.dataExt, 'rxdata');
+});
+
+test('loads a game whose Data/ is inside Game.rgss3a (only the archive in hand)', async () => {
+  const { get, calls } = setup();
+  const arch = rgss3a(Object.entries(xpData).map(([n, v]) => ['Data\\' + n.replace('rxdata', 'rvdata2'), marshal(v)]));
+  await get('loadFolder')([{ ...arch, webkitRelativePath: 'AceGame/Game.rgss3a' }, bin('AceGame/Audio/BGM/x.ogg', new Uint8Array(1))]);
+  await get('S.bgDone');
+  const S = get('S');
+  assert.equal(calls.failed.length, 0, calls.failed.join());
+  assert.deepEqual(plain(S.actors), ['', 'Aluxes']);
+  assert.equal(S.maps.get(1).events[0].name, 'King');
+  assert.equal(S.dataExt, 'rvdata2');
 });
 
 test('also works when only the data/ folder is selected, or with Windows separators', async () => {
@@ -169,6 +210,19 @@ test('findDataFiles finds www/data without walking img/ or audio/, and reads not
   assert.equal(await files.find(f => f.name === 'Map001.json').text(), '{"events":[]}');
 });
 
+test('findDataFiles: an XP/VX/VX Ace game folder gives its archive, or its Data/*.rvdata2', async () => {
+  const listed = [];
+  const root = dir({ 'Game.exe': '', 'Game.rgss3a': 'x', Graphics: { Pictures: { 'a.png': '' } }, Audio: { BGM: {} } }, listed);
+  const files = await get0('findDataFiles')(root, get0('FS_HANDLE'));
+  assert.deepEqual(plain(files.map(f => f._dragPath)), ['Game.rgss3a']);
+  assert.deepEqual(listed, ['/'], 'Graphics/ and Audio/ are never walked');
+  assert.ok(files.gameRoot && typeof files[0].file === 'function');
+
+  const project = dir({ Data: { 'Map001.rvdata2': 'm', 'System.rvdata2': 's', 'Scripts.rvdata2': '' }, Graphics: {} }, []);
+  const data = await get0('findDataFiles')(project, get0('FS_HANDLE'));
+  assert.deepEqual(plain(data.map(f => f._dragPath).sort()), ['Data/Map001.rvdata2', 'Data/System.rvdata2']);
+});
+
 test('FS_ENTRY keeps calling readEntries until it returns an empty batch (more than 100 files)', async () => {
   const entries = Array.from({ length: 250 }, (_, i) => ({ name: `f${i}`, isDirectory: false }));
   let at = 0;
@@ -246,7 +300,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
   };
   const { calls } = setup();
   // remote.js and media.js load into the same scope as the page's scripts do.
-  const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
+  const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, Response, encodeURIComponent, fetch: fetchImpl,
     Loader: { active: false, open(o) { calls.loader.push(['open', o.name, o.kind]); }, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },
@@ -285,7 +339,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
 
 test('a link that does not work ends in the loader’s error, not a crash', async () => {
   const { calls } = setup();
-  const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'loader.js'], {
+  const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, encodeURIComponent,
     fetch: async () => new Response('', { status: 401 }),

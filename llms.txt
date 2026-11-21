@@ -1,10 +1,10 @@
 # MakerLens Events
 
-> Free, browser-based, read-only viewer for RPG Maker MV and MZ events. It shows the dialogue, choices, conditions, switches, variables, labels and jumps of map and common events as an interactive flow graph. Runs 100% client-side: game files are never uploaded.
+> Free, browser-based, read-only viewer for RPG Maker MV, MZ, VX Ace, VX and XP events. It shows the dialogue, choices, conditions, switches, variables, labels and jumps of map and common events as an interactive flow graph. Runs 100% client-side: game files are never uploaded.
 
 ## What it does
 
-Open a released RPG Maker MV or MZ game (the game folder, or its `data/` folder) and MakerLens Events parses `MapInfos.json`, `Map###.json`, `CommonEvents.json`, `Actors.json` and `System.json` in your browser. Each event page is drawn as a flow graph, with switch, variable and actor names resolved from the game's data. No project, no editor, no plugin.
+Open a released RPG Maker MV or MZ game (the game folder, or its `data/` folder) and MakerLens Events parses `MapInfos.json`, `Map###.json`, `CommonEvents.json`, `Actors.json` and `System.json` in your browser. VX Ace, VX and XP games work too: their `Data/*.rvdata2` / `.rvdata` / `.rxdata` files (Ruby Marshal) are read from the folder or from inside `Game.rgss3a` / `.rgss2a` / `.rgssad`. Each event page is drawn as a flow graph, with switch, variable and actor names resolved from the game's data. No project, no editor, no plugin.
 
 - Dialogue (including speaker names), choices and their branches
 - Conditional branches with readable switch / variable conditions

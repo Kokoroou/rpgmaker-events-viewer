@@ -45,7 +45,7 @@ Part of the **[MakerLens](https://makerlens.kokoroou.workers.dev/)** family: use
 |--------|--------|
 | RPG Maker MV | Supported |
 | RPG Maker MZ | Supported |
-| RPG Maker XP / VX / VX Ace | Not supported (different format) |
+| RPG Maker VX Ace / VX / XP | Supported: `Data/*.rvdata2` / `.rvdata` / `.rxdata` (Ruby Marshal, `js/rgss.js`), also read from `Game.rgss3a` / `.rgss2a` / `.rgssad` |
 
 ## Node Types
 
