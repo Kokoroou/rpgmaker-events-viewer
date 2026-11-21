@@ -66,6 +66,7 @@ function initCy() {
     wheelSensitivity: 0.3,
     autoungrabify: true,   // read-only: nodes cannot be dragged
   });
+  watchGraphSize(document.getElementById('cy'));
   cy.on('tap', 'node', e => showDetail(e.target.data('nodeData')));
   cy.on('tap', e => { if (e.target === cy) clearDetail(); });
 }
@@ -235,7 +236,31 @@ function drawGraph(nodes, edges, plan) {
   }).run();
 
   const seq = renderSeq;
-  setTimeout(() => { if (seq === renderSeq) cy.fit(undefined, 32); }, 50);
+  setTimeout(() => { if (seq === renderSeq) fitGraph(); }, 50);
+}
+
+// Fit the page on screen, but never blow a small page up past life size (one node filling the view).
+const FIT_MAX_ZOOM = 1.2;
+function fitGraph() {
+  if (!cy) return;
+  cy.fit(undefined, 32);
+  if (cy.zoom() > FIT_MAX_ZOOM) { cy.zoom(FIT_MAX_ZOOM); cy.center(); }
+}
+
+// The canvas changes size when the inspector opens or closes, or the window does: keep the
+// drawing in place and the tapped node on screen.
+function watchGraphSize(container) {
+  if (watchGraphSize.on || typeof ResizeObserver !== 'function') return;
+  watchGraphSize.on = true;
+  new ResizeObserver(() => {
+    if (!cy) return;
+    cy.resize();
+    const sel = cy.$('node:selected');
+    if (!sel.length) return;
+    const bb = sel.renderedBoundingBox(), w = cy.width(), h = cy.height();
+    const m = 64;   // clear of the zoom buttons at the edge
+    if (bb.x1 < m || bb.y1 < m || bb.x2 > w - m || bb.y2 > h - m) cy.center(sel);
+  }).observe(container);
 }
 
 function nodeLabel(n) {

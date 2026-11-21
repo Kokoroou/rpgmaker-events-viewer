@@ -75,7 +75,7 @@ test('loads a game folder: map tree, names, common events and maps with events',
   assert.equal(calls.failed.length, 0);
   assert.equal(S.mapFiles.size, 0);                // every map was read in the background
   assert.equal(calls.status.at(-1)[0], 'ok');
-  assert.match(calls.status.at(-1)[1], /2 maps with 2 events and 1 common events/);
+  assert.match(calls.status.at(-1)[1], /2 maps with 2 events and 1 common event\./);
 });
 
 // RPG Maker XP data (Ruby Marshal, js/rgss.js) as Files of a picked folder.
