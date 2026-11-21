@@ -40,7 +40,7 @@ Save files for **Use a save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `
 
 ## Privacy and legal
 
-- **Privacy:** your game is processed only in your browser; nothing about it is sent anywhere. The public site counts anonymous page visits (GoatCounter) and sends feedback only when you choose to. What is sent, and what never is, is defined on the [privacy page](https://makerlens.kokoroou.workers.dev/assets/privacy.html), the single source of truth. A Content-Security-Policy makes the browser block every other host.
+- **Privacy:** your game is processed only in your browser; nothing about it is sent anywhere. The public site counts anonymous page visits and a few actions by name (GoatCounter: how a game was opened, which feature was used, never what) and sends feedback only when you choose to. What is sent, and what never is, is defined on the [privacy page](https://makerlens.kokoroou.workers.dev/assets/privacy.html), the single source of truth. A Content-Security-Policy makes the browser block every other host.
 - **Legal:** intended for games you own or have the rights holder's permission to inspect; games are only read, never modified. See [`LEGAL.md`](https://github.com/Kokoroou/rpgmaker-assets-viewer/blob/main/LEGAL.md) in MakerLens Assets for intended use, user responsibility and takedown policy.
 
 ## Documentation
@@ -49,7 +49,7 @@ Save files for **Use a save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `
 |----------|----------------|
 | [`faq.html`](faq.html) | usage questions: opening a game, reading the graph, scenes, saves |
 | [`docs/vision.md`](docs/vision.md) | product vision and positioning |
-| [`docs/ROADMAP.md`](docs/ROADMAP.md) | planned work, measurement and stop rule |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | planned work and non-goals |
 | [`CLAUDE.md`](CLAUDE.md) | architecture (parser, scenes, loaders, graph) and contributor rules |
 | [`vendor/README.md`](vendor/README.md) | bundled libraries and their licenses |
 

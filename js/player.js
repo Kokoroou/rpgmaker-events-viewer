@@ -591,5 +591,6 @@ function playerCommon(id) {
 // Opens a scene from the sidebar, the event picker, the toolbar or the player itself
 // (opts: see Player.open).
 function openScene(entry, opts) {
+  track('scene-preview');
   Player.open(entry, opts);
 }

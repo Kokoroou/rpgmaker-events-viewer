@@ -4,9 +4,8 @@ This roadmap turns the LoreInsight prototype into **MakerLens Events**, the even
 MakerLens family (MakerLens Assets views a game's images and audio:
 <https://makerlens.kokoroou.workers.dev/assets/>). It comes from the idea evaluation of 2026-11-05.
 
-**Verdict:** keep going only as part of MakerLens (3★ inside the family, 2★ as a standalone LoreInsight): same
-audience and gesture, running cost 0, but a narrower market than Assets (≈ 40k people ever needing to read
-event flow vs ≈ 100k for assets), so a separate brand would split already small traffic. Free, no paid tier.
+**Direction:** MakerLens Events grows only as part of MakerLens: same audience and gesture as MakerLens Assets,
+a narrower job, so a separate brand would split the traffic. Free, no paid tier.
 
 ## Why rebrand instead of growing LoreInsight alone
 
@@ -66,7 +65,7 @@ Goal: the product is public, findable and measurable, and both MakerLens sites p
 | 1.1 | ~~**Publish**~~ | Done: <https://makerlens.kokoroou.workers.dev/events/>, deployed by `Kokoroou/makerlens` (one Cloudflare Worker for the family) | S |
 | 1.2 | ~~**Decide the repository name**~~ | Done: renamed to `rpgmaker-events-viewer` (matches `rpgmaker-assets-viewer`) | S |
 | 1.3 | ~~**Cross-link from MakerLens Assets**~~ | Done: MakerLens Assets roadmap item 17, a link in its About dialog; Events links back from the setup screen and About. Link only, no data shared between sites | S |
-| 1.4 | ~~**Anonymous page counter (GoatCounter)**~~ | Done: `js/analytics.js`, page views and referrer only, CSP `img-src` allows the counter; documented in the shared MakerLens privacy page (`/assets/privacy.html#analytics`) | S |
+| 1.4 | ~~**Anonymous page counter (GoatCounter)**~~ | Done: `js/analytics.js`, page views and referrer plus a few actions by fixed name, CSP `img-src` allows the counter; documented in the shared MakerLens privacy page (`/assets/privacy.html#analytics`) | S |
 | 1.5 | ~~**Feedback and star rating**~~ | Done: `js/feedback.js`, project `makerlens-events` in the feedback inbox (managed through its `/api/projects`), prompt only after the second game is loaded, like MakerLens Assets; documented in `/assets/privacy.html#feedback` | S–M |
 | 1.6 | **SEO basics** | `canonical`, `og:url`, `og:image` (MakerLens style), `sitemap.xml`, `llms.txt`, favicon with the shared mark | S |
 | 1.7 | **`LEGAL.md` and FAQ** | Intended use (own games or games you may study), read-only, no upload, takedown policy; mirror MakerLens wording | S |
@@ -75,8 +74,8 @@ Goal: the product is public, findable and measurable, and both MakerLens sites p
 
 ## Phase 2: sharpen the primary job (weeks 3–8, while measuring)
 
-Only features that serve "understand how the game works without the project". Ship them as the numbers
-from Phase 1 come in; stop early if the stop rule below triggers.
+Only features that serve "understand how the game works without the project". Ship them as usage counts
+and feedback come in.
 
 | # | Item | Why | Effort |
 |---|------|-----|--------|
@@ -91,21 +90,15 @@ from Phase 1 come in; stop early if the stop rule below triggers.
 
 | # | Item | Gate | Effort |
 |---|------|------|--------|
-| 3.1 | **Same site, two pages**: move into the MakerLens repo as `events.html`, sharing CSP, counter and feedback | ≥ 300 views/month **or** ≥ 10% of MakerLens visitors click through to Events. Needs MakerLens to allow vendored libraries (or a hand-written graph renderer) | M |
-| 3.2 | **One page, two tabs**: pick the folder once, switch between Assets and Events; from a dialogue node jump to the face image and BGM in Assets | ≥ 20% click-through **and** ≥ 3 user requests for switch search or cross-linking | L |
+| 3.1 | **Same site, two pages**: move into the MakerLens repo as `events.html`, sharing CSP, counter and feedback | Done another way: one Worker serves `/assets/` and `/events/` | M |
+| 3.2 | **One page, two tabs**: pick the folder once, switch between Assets and Events; from a dialogue node jump to the face image and BGM in Assets | Partly done: the Assets \| Events switch hands the folder over. The rest only if usage and requests support it | L |
 
-## Measurement and stop rule
+## How we decide
 
-Read after 8 weeks from the launch in Phase 1:
-
-| Metric | Source | Continue | Stop adding features |
-|--------|--------|----------|----------------------|
-| Page views per month | GoatCounter | ≥ 300 | < 100 |
-| Click-through from MakerLens Assets | GoatCounter referrer | ≥ 10% | — |
-| Star ratings | feedback inbox | ≥ 10, average ≥ 4 | < 5 |
-| Feature requests | feedback inbox, forum threads | ≥ 3 on the same topic | — |
-
-"Stop adding features" means: keep the site online and linked from MakerLens, fix bugs only.
+Which phase item comes next is decided from anonymous usage counts and feedback (what is counted:
+[privacy page](https://makerlens.kokoroou.workers.dev/assets/privacy.html#analytics)); the owner keeps the
+analysis and decision notes outside this repository. "Stop adding features" would mean: keep the site
+online and linked from MakerLens, fix bugs only.
 
 ## Do not do
 
@@ -116,5 +109,4 @@ Read after 8 weeks from the launch in Phase 1:
 | Loading anything from third-party hosts (CDNs, web fonts) | CSP and offline promise; vendor instead |
 | Charging for the tool | Free alternatives exist and a paid tool for reading others' games weakens the legal position; a shared donate link is the most |
 | Analytics with game details (file, map or event names, text) | Same rule as MakerLens |
-| Supporting XP/VX/VX Ace event data (Ruby Marshal `.rxdata`/`.rvdata2`) | Different format and a much larger parser; only if users clearly ask after Phase 2 |
 | Bringing back the LoreInsight name in the UI | One brand: MakerLens |

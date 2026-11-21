@@ -65,3 +65,34 @@ test('countEvent resolves after a short wait when the request never answers, and
   await c.countEvent('switch-to-assets');
   assert.equal(c.sent.length, 0);
 });
+
+test('countEvent sends each name at most once per page load', async () => {
+  const { sent, countEvent } = setup();
+  sent.length = 0;
+  await countEvent('graph-view');
+  await countEvent('graph-view');
+  await countEvent('open-ok');
+  assert.deepEqual(sent.map(u => u.searchParams.get('p')), ['graph-view', 'open-ok']);
+  for (const u of sent) assert.deepEqual([...u.searchParams.keys()].sort(), ['e', 'p', 'rnd', 't']);
+});
+
+test('every name the app counts is in the list analytics.js sends', async () => {
+  const { readFileSync } = await import('node:fs');
+  const read = f => readFileSync(new URL(`../js/${f}`, import.meta.url), 'utf8');
+  const src = ['app.js', 'loader.js', 'player.js', 'sidebar.js'].map(read).join('\n');
+  const list = read('analytics.js');
+  const used = new Set([...src.matchAll(/\b(?:track|failLoad\([^)]*?,)\s*\(?\s*'([a-z0-9-]+)'/g)].map(m => m[1]));
+  for (const m of src.matchAll(/(?:, |way = )'(open-[a-z0-9-]+)'/g)) used.add(m[1]);
+  for (const m of read('constants.js').matchAll(/'(engine-[a-z0-9]+)'/g)) used.add(m[1]);
+  assert.ok(used.size > 18, [...used].join(' '));
+  for (const name of used) assert.ok(list.includes(`'${name}'`), `${name} is not in EVENTS`);
+});
+
+test('engineEvent maps engine labels to the fixed engine names (same as MakerLens Assets)', () => {
+  const engineEvent = load(['constants.js'])('engineEvent');
+  const cases = [
+    ['RPG Maker MZ', 'engine-mz'], ['RPG Maker MV', 'engine-mv'], ['MV/MZ', 'engine-mvmz'], ['RPG Maker XP', 'engine-xp'],
+    ['RPG Maker VX', 'engine-vx'], ['RPG Maker VX Ace', 'engine-vxace'], ['RPG Maker 2000/2003', 'engine-2k'], [null, 'engine-other'],
+  ];
+  for (const [label, want] of cases) assert.equal(engineEvent(label), want, String(label));
+});

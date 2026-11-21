@@ -65,3 +65,14 @@ function textTags(str) {
     .replace(/&nbsp;/gi, ' ').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"').replace(/&#39;/g, "'").replace(/&amp;/gi, '&');
 }
+
+// Anonymous usage count by fixed name (js/analytics.js; no-op until it has loaded, off the
+// public site and with Do Not Track / GPC). Never pass anything built from game data.
+const track = name => (typeof countEvent === 'function' ? countEvent(name) : Promise.resolve());
+// Engine label ('RPG Maker VX Ace', 'RPG Maker 2000/2003'…) → the event name of its family
+// (same function as MakerLens Assets' js/constants.js).
+function engineEvent(label) {
+  const l = label || '';
+  return /MV\/MZ/.test(l) ? 'engine-mvmz' : /2000|2003/.test(l) ? 'engine-2k' : /VX Ace/i.test(l) ? 'engine-vxace' : /\bVX\b/.test(l) ? 'engine-vx'
+       : /\bXP\b/.test(l) ? 'engine-xp' : /\bMZ\b/.test(l) ? 'engine-mz' : /\bMV\b/.test(l) ? 'engine-mv' : 'engine-other';
+}

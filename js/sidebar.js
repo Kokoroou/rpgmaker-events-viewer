@@ -82,6 +82,7 @@ function initSearch() {
     clearTimeout(timer);
     if (S.search === input.value) return;
     S.search = input.value;
+    if (S.search.trim()) track('search-used');   // that search was used, never the words
     S.searchExpanded = { scenes: false, events: false };
     renderSidebar();
     EL.sidebar.scrollTop = 0;
