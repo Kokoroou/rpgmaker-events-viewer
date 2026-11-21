@@ -146,6 +146,7 @@ function selectEvent(mapId, evId, page = 0) {
 
 function selectPage(pi) {
   S.selectedPage = pi;
+  track('graph-view');
   const tabs = EL.pageTabs.querySelectorAll('.page-tab');
   tabs.forEach((t, i) => {
     t.classList.toggle('active', i === pi);
@@ -235,7 +236,7 @@ function init() {
 
   EL.openBtn.addEventListener('click', () => {
     if (window.showDirectoryPicker) openWithFSAPI();
-    else document.getElementById('folder-input').click();
+    else { track('picker-unsupported'); document.getElementById('folder-input').click(); }
   });
 
   document.getElementById('drop-zone').addEventListener('click', () => EL.openBtn.click());
@@ -247,7 +248,7 @@ function init() {
   document.getElementById('files-input').addEventListener('change', e => {
     const picked = [...e.target.files];
     e.target.value = '';
-    if (picked.length) loadFolder(picked);
+    if (picked.length) loadFolder(picked, 'open-files');
   });
 
   document.addEventListener('dragover', e => {
@@ -266,7 +267,7 @@ function init() {
       // Ask for the handle now: the DataTransfer is only valid during the drop event.
       openDropped(entry.webkitGetAsEntry(), entry.getAsFileSystemHandle?.().catch(() => null));
     } else if (e.dataTransfer.files.length) {
-      loadFolder([...e.dataTransfer.files]);
+      loadFolder([...e.dataTransfer.files], 'open-drop');
     }
   });
 
@@ -297,6 +298,7 @@ function init() {
     if (!f) return;
     try {
       S.save = await readSave(f.name, await f.arrayBuffer());
+      track('save-used');
       syncSave();
     } catch (err) {
       S.save = null;
@@ -315,7 +317,7 @@ function init() {
   // folder as its directory handle through IndexedDB (js/handoff.js), so it is not picked again.
   // Counted by name only in GoatCounter ('switch-to-assets', js/analytics.js); the request gets
   // a moment to leave before the page navigates.
-  const countSwitch = () => (typeof countEvent === 'function' ? countEvent('switch-to-assets') : Promise.resolve());
+  const countSwitch = () => track('switch-to-assets');
   EL.switchGo.addEventListener('click', async () => {
     if (S.remoteLink) {
       const to = Remote.switchURL(S.remoteLink, 'assets');
@@ -379,7 +381,7 @@ function init() {
     entry: ({ entry, handle }) => openDropped(entry, handle),
     files: files => loadFolder(files),
     error: e => setStatus('err', 'Could not open folder: ' + e.message),
-    loose: files => loadFolder(files),
+    loose: files => loadFolder(files, 'open-files'),
     busy: () => Loader.active,
     // The View another way dialog (js/preboot.js) hands over the pasted link: an error message or null.
     link: text => {
@@ -397,7 +399,7 @@ function init() {
 // works), else the drag & drop entry.
 async function openDropped(entry, handlePromise) {
   const h = await handlePromise;
-  return h && h.kind === 'directory' ? openFolder(h, FS_HANDLE) : openFolder(entry, FS_ENTRY);
+  return h && h.kind === 'directory' ? openFolder(h, FS_HANDLE, 'open-drop') : openFolder(entry, FS_ENTRY, 'open-drop');
 }
 
 // Arriving from MakerLens Assets: its folder is waiting in the handover. If the browser still
@@ -405,7 +407,7 @@ async function openDropped(entry, handlePromise) {
 async function openHandoff() {
   const handle = await Handoff.receive();
   if (!handle || Loader.active || S.mapFiles.size) return;
-  const open = () => openFolder(handle, FS_HANDLE);
+  const open = () => openFolder(handle, FS_HANDLE, 'open-handoff');
   if (await Handoff.permission(handle, false) === 'granted') { open(); return; }
   EL.handoffName.textContent = handle.name;
   EL.handoff.hidden = false;

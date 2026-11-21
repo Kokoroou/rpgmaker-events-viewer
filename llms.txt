@@ -28,7 +28,7 @@ Guide and wiki writers, dataminers and speedrunners (what unlocks an ending or a
 
 - MakerLens Assets (images and audio of the same game): https://makerlens.kokoroou.workers.dev/assets/
 - MakerLens home: https://makerlens.kokoroou.workers.dev/
-- Privacy (no uploads, anonymous page-view counter only): https://makerlens.kokoroou.workers.dev/assets/privacy.html
+- Privacy (no uploads, anonymous counter of page views and of a few actions by name only): https://makerlens.kokoroou.workers.dev/assets/privacy.html
 
 ## Source
 

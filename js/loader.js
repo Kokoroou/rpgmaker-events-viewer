@@ -30,8 +30,10 @@ const abort = msg => new DOMException(msg, 'AbortError');
 // Every way of opening a game goes through here: it drives the Loader overlay.
 // The new game is built on the side and only replaces the open one at commit,
 // so Cancel or a failure before that keeps what was on screen.
-async function runLoad(name, getFiles, kind) {
+// `way` is the open-* event name (js/analytics.js); the outcome is counted too.
+async function runLoad(name, getFiles, kind, way) {
   const id = ++seq;
+  if (way) track(way);
   const guard = () => { if (id !== seq) throw abort('Superseded'); Loader.check(); };
   Fg.active++;   // the previous game's background reading yields meanwhile
   Loader.open({ name, steps: ['detect', 'read', 'map'], kind });
@@ -42,7 +44,7 @@ async function runLoad(name, getFiles, kind) {
     await loadFiles(files, id, guard, name);
   } catch (e) {
     if (id !== seq) return;   // a newer load took over the overlay
-    if (e && e.name === 'AbortError') { Loader.close(); setStatus('', ''); }
+    if (e && e.name === 'AbortError') { Loader.close(); setStatus('', ''); if (e.message !== 'Superseded') track('open-cancel'); }
     else failLoad('Could not open folder: ' + ((e && e.message) || e));
   } finally {
     Fg.active--;
@@ -50,9 +52,9 @@ async function runLoad(name, getFiles, kind) {
 }
 
 // <input webkitdirectory> and plain file drops: the File list is already in hand.
-function loadFolder(files) {
+function loadFolder(files, way = 'open-input') {
   const first = files[0] && (files[0].webkitRelativePath || files[0]._dragPath || '');
-  return runLoad(first.includes('/') ? first.split(/[\\/]/)[0] : '', async () => files);
+  return runLoad(first.includes('/') ? first.split(/[\\/]/)[0] : '', async () => files, undefined, way);
 }
 
 // The switch to MakerLens Assets (app.js, js/handoff.js): offered for a game link, or a folder
@@ -74,7 +76,9 @@ function setSidebar(open) {
   if (EL.sidebarToggle) EL.sidebarToggle.setAttribute('aria-pressed', open ? 'true' : 'false');
 }
 
-function failLoad(message) {
+// `ev`: the outcome counted (js/analytics.js); '' when the game was already open.
+function failLoad(message, ev = 'open-fail-other') {
+  if (ev) track(ev);
   setStatus('err', message);
   Loader.fail(message);
 }
@@ -137,7 +141,7 @@ async function loadFiles(files, id, guard, name) {
   }
 
   if (!dataPrefix && mapFiles.size === 0) {
-    return failLoad(notGameMessage(name, [...fileMap.keys()]));
+    return failLoad(notGameMessage(name, [...fileMap.keys()]), 'open-fail-nomedia');
   }
   if (mapFiles.size === 0) return failLoad('No map files (Map###.json, .rvdata2, .rvdata or .rxdata) found in the data folder.');
   const engine = typeof rgssEngine === 'function' ? rgssEngine('.' + ext) : null;
@@ -217,6 +221,9 @@ async function loadFiles(files, id, guard, name) {
   Loader.step('map', 'active', `0/${loadInfo.total} maps read`);
   Loader.commit();
   setStatus('info', SPINNER + 'Reading maps…');
+  track('open-ok');
+  // engine: 'xp' | 'vx' | 'vxace' (rgss.js); MZ's System.json has "advanced", MV's does not.
+  track(engine ? 'engine-' + engine : engineEvent(lcf ? 'RPG Maker 2000/2003' : system ? (system.advanced ? 'RPG Maker MZ' : 'RPG Maker MV') : 'MV/MZ'));
   renderSidebar();
   setSidebar(!isPhone());   // phones: a drawer, closed until the menu button opens it
   showMapProgress();
@@ -315,7 +322,7 @@ function finishLoad() {
     EL.scanStatus.textContent = '';
     EL.sidebar.classList.add('hidden');
     EL.sbResizer.classList.add('hidden');
-    failLoad('No events found in any map file.');
+    failLoad('No events found in any map file.', '');
     return;
   }
   const totalEvents = [...S.maps.values()].reduce((s, m) => s + m.events.length, 0);
@@ -423,11 +430,11 @@ async function openWithFSAPI() {
     if (e.name !== 'AbortError') setStatus('err', 'Could not open folder: ' + e.message);
     return;
   }
-  await openFolder(dir, FS_HANDLE);
+  await openFolder(dir, FS_HANDLE, 'open-picker');
 }
 
 // A directory handle (picker) or entry (drag & drop): only data/*.json is listed.
-function openFolder(root, fs) {
+function openFolder(root, fs, way = 'open-picker') {
   return runLoad(root.name || '', async guard => {
     const out = await findDataFiles(root, fs, path => {
       guard();
@@ -435,7 +442,7 @@ function openFolder(root, fs) {
     });
     if (fs === FS_HANDLE) out.folderHandle = root;   // kept for the switch to Assets
     return out;
-  });
+  }, undefined, way);
 }
 
 /* ── Game link (js/remote.js) ───────────────────────────
@@ -475,7 +482,7 @@ function openRemote(link) {
     out.mediaRoot = remoteMedia(manifest.files, api);
     out.remoteLink = link;   // kept for the switch button (memory only)
     return out;
-  }, 'remote');
+  }, 'remote', 'open-link');
 }
 
 // The link in the address (the one the game’s Share menu shows): open it, and take the key
