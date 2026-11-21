@@ -39,7 +39,7 @@ async function runLoad(name, getFiles, kind) {
   try {
     const files = await getFiles(guard);
     guard();
-    await loadFiles(files, id, guard);
+    await loadFiles(files, id, guard, name);
   } catch (e) {
     if (id !== seq) return;   // a newer load took over the overlay
     if (e && e.name === 'AbortError') { Loader.close(); setStatus('', ''); }
@@ -93,7 +93,18 @@ async function expandArchive(files, guard) {
   return out;
 }
 
-async function loadFiles(files, id, guard) {
+// What to say when the picked folder holds no game: name the folder and say which one to pick.
+// A folder inside the game (img/, audio/, Graphics/, img/pictures…) gets "the folder above it".
+const INNER_DIRS = /^(pictures|faces|characters|enemies|sv_actors|sv_enemies|tilesets|titles[12]|parallaxes|battlebacks[12]|animations|bgm|bgs|me|se)$/i;
+function notGameMessage(name, paths) {
+  const top = name || ((paths && paths[0]) || '').split('/')[0];
+  const where = 'the game\'s main folder: the one that holds data/ (or Data/, or RPG_RT.ldb), usually next to Game.exe';
+  if (top && (SKIP_DIRS.test(top) || INNER_DIRS.test(top)))
+    return `"${top}" is a folder inside the game. Select the folder above it instead, ${where}.`;
+  return `No RPG Maker game data found${top ? ` in "${top}"` : ''}. Select ${where}.`;
+}
+
+async function loadFiles(files, id, guard, name) {
   files = await expandArchive(files, guard);
   const fileMap = new Map();
   for (const f of files) {
@@ -115,7 +126,7 @@ async function loadFiles(files, id, guard) {
   }
 
   if (!dataPrefix && mapFiles.size === 0) {
-    return failLoad('No RPG Maker data folder found. Make sure to select the game root or data/ folder.');
+    return failLoad(notGameMessage(name, [...fileMap.keys()]));
   }
   if (mapFiles.size === 0) return failLoad('No map files (Map###.json, .rvdata2, .rvdata or .rxdata) found in the data folder.');
   const engine = typeof rgssEngine === 'function' ? rgssEngine('.' + ext) : null;

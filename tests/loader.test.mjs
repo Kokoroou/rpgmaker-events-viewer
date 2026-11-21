@@ -161,9 +161,17 @@ test('a folder without RPG Maker data reports an error and loads nothing', async
   const { get, calls } = setup();
   await get('loadFolder')([file('Photos/cat.png', '')]);
   assert.equal(calls.status.at(-1)[0], 'err');
-  assert.match(calls.status.at(-1)[1], /No RPG Maker data folder/);
-  assert.match(calls.failed[0], /No RPG Maker data folder/);   // shown in the overlay too
+  assert.match(calls.status.at(-1)[1], /No RPG Maker game data found in "Photos"\. Select the game's main folder/);
+  assert.match(calls.failed[0], /No RPG Maker game data found/);   // shown in the overlay too
   assert.equal(calls.sidebar, 0);
+});
+
+test('a folder inside the game (img/, img/pictures/) says to pick the folder above it', async () => {
+  for (const [path, top] of [['img/pictures/a.png_', 'img'], ['pictures/a.png_', 'pictures'], ['Graphics/x.png', 'Graphics']]) {
+    const { get, calls } = setup();
+    await get('loadFolder')([file(path, '')]);
+    assert.match(calls.failed[0], new RegExp(`"${top}" is a folder inside the game\\. Select the folder above it`));
+  }
 });
 
 test('maps without any event report an error', async () => {
