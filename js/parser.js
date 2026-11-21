@@ -41,14 +41,16 @@ function parseEventPage(list, prefix) {
 
   function parseBlock(startIdx, indent) {
     let i = startIdx;
-    let prev  = null;
     let first = null;
+    // Where the flow comes from when the next node is added: the previous node, or every
+    // branch end of a choice / condition (labelled when the branch itself was empty).
+    let tails = [];
 
     function add(node) {
       nodes.push(node);
-      if (prev)  edges.push({ source: prev, target: node.id });
+      for (const t of tails) edges.push(t.label ? { source: t.id, target: node.id, label: t.label } : { source: t.id, target: node.id });
       if (!first) first = node.id;
-      prev = node.id;
+      tails = [{ id: node.id }];
     }
 
     while (i < list.length) {
@@ -84,6 +86,7 @@ function parseEventPage(list, prefix) {
           const choices = allChoices.filter(c => c !== '');
           add({ id, type: 'choice', choices });
           i++;
+          const ends = [];
 
           while (i < list.length) {
             const c = list[i];
@@ -95,12 +98,13 @@ function parseEventPage(list, prefix) {
               i++;
               const sub = parseBlock(i, indent + 1);
               i = sub.nextIdx;
-              if (sub.first) edges.push({ source: id, target: sub.first, label: clabel });
+              if (sub.first) { edges.push({ source: id, target: sub.first, label: clabel }); ends.push(...sub.tails); }
+              else ends.push({ id, label: clabel });
             } else {
               i++;
             }
           }
-          prev = null; // branches diverge; no single successor
+          tails = ends; // the branches meet again after "End"
           break;
         }
 
@@ -111,17 +115,23 @@ function parseEventPage(list, prefix) {
 
           const tb = parseBlock(i, indent + 1);
           i = tb.nextIdx;
-          if (tb.first) edges.push({ source: id, target: tb.first, label: 'True' });
+          const ends = [];
+          if (tb.first) { edges.push({ source: id, target: tb.first, label: 'True' }); ends.push(...tb.tails); }
+          else ends.push({ id, label: 'True' });
+          let hasElse = false;
 
           if (i < list.length && list[i].code === CMD.ELSE && list[i].indent === indent) {
             i++;
+            hasElse = true;
             const eb = parseBlock(i, indent + 1);
             i = eb.nextIdx;
-            if (eb.first) edges.push({ source: id, target: eb.first, label: 'Else' });
+            if (eb.first) { edges.push({ source: id, target: eb.first, label: 'Else' }); ends.push(...eb.tails); }
+            else ends.push({ id, label: 'Else' });
           }
+          if (!hasElse) ends.push({ id, label: 'Else' }); // false: straight on
           if (i < list.length && list[i].code === CMD.IF_END && list[i].indent === indent) i++;
 
-          prev = null;
+          tails = ends;
           break;
         }
 
@@ -148,7 +158,7 @@ function parseEventPage(list, prefix) {
       }
     }
 
-    return { nextIdx: i, first, last: prev };
+    return { nextIdx: i, first, tails };
   }
 
   parseBlock(0, 0);

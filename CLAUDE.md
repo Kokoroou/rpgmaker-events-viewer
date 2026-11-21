@@ -98,6 +98,7 @@ A segmented control in the header (`css/switch.css`, same file as Assets; lit se
 - **Dialogue** (code 101 + trailing 401s): collects lines into one node, stores `listStart`/`listEnd` indices into the command list
 - **Choices** (102 → 402 branches → 404 end): one choice node, branches recurse one indent deeper
 - **Conditions** (111 → 411 else → 412 end): condition node, true/else branches recurse
+- **After a branch** the flow goes on: every branch end (or the choice/condition itself, labelled, for an empty branch or a missing Else) gets an edge to the next node after End, so the graph stays one flow
 - **Labels** (118) / **Jumps** (119): collected into `labelMap` / `jumpQueue`, resolved as dashed back-edges after the main parse
 
 `describeCondition(params)` reads `S.switches` / `S.variables` / `S.actors` (global `S`) to show human-readable names in condition nodes.

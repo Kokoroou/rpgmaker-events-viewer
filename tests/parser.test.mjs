@@ -72,8 +72,46 @@ test('Show Choices: one edge per branch labelled with the choice text, empty cho
   assert.equal(edge(edges, 'p_0', yes.id).label, 'Yes');
   // Index 2 of the original list, not of the list without the blank entry.
   assert.equal(edge(edges, 'p_0', no.id).label, 'No');
-  // Branches diverge: the node after "End" is not chained to the choice.
-  assert.equal(edges.some(e => e.target === after.id), false);
+  // The branches meet again after "End": each branch end leads to the next node.
+  assert.ok(edge(edges, yes.id, after.id));
+  assert.ok(edge(edges, no.id, after.id));
+  assert.equal(edges.filter(e => e.target === after.id).length, 2);
+});
+
+test('an empty choice branch leads straight to the node after End, labelled with the choice', () => {
+  const { nodes, edges } = parse([
+    c(102, 0, [['Talk', 'Leave'], 1]),
+    c(402, 0, [0, 'Talk']), c(101, 1, ['']), c(401, 1, ['Hi']), c(0, 1),
+    c(402, 0, [1, 'Leave']), c(0, 1),
+    c(404, 0),
+    c(101, 0, ['']), c(401, 0, ['Bye']),
+  ]);
+  const [choice, hi, bye] = nodes;
+  assert.ok(edge(edges, hi.id, bye.id));
+  assert.equal(edge(edges, choice.id, bye.id).label, 'Leave');
+});
+
+test('after a Conditional Branch the flow goes on from both answers', () => {
+  reset();
+  const withElse = parse([
+    c(111, 0, [0, 1, 0]), c(101, 1, ['']), c(401, 1, ['yes']), c(0, 1),
+    c(411, 0), c(101, 1, ['']), c(401, 1, ['no']), c(0, 1),
+    c(412, 0),
+    c(101, 0, ['']), c(401, 0, ['next']),
+  ]);
+  const [, yes, no, next] = withElse.nodes;
+  assert.ok(edge(withElse.edges, yes.id, next.id));
+  assert.ok(edge(withElse.edges, no.id, next.id));
+
+  // No Else: when the condition is false the flow goes straight on.
+  const noElse = parse([
+    c(111, 0, [0, 1, 0]), c(101, 1, ['']), c(401, 1, ['yes']), c(0, 1),
+    c(412, 0),
+    c(101, 0, ['']), c(401, 0, ['next']),
+  ]);
+  const [cond, y, n] = noElse.nodes;
+  assert.ok(edge(noElse.edges, y.id, n.id));
+  assert.equal(edge(noElse.edges, cond.id, n.id).label, 'Else');
 });
 
 test('a branch whose choice text is missing falls back to the When text, then to its number', () => {
