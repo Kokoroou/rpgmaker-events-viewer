@@ -1,10 +1,10 @@
 # MakerLens Events
 
-An RPG Maker event viewer: see the event flow of any RPG Maker MV or MZ game as an interactive node graph, right in your browser.
+An RPG Maker event viewer: see the dialogue, choices and conditions of an RPG Maker game (MV, MZ, VX Ace, VX, XP, 2000, 2003) as an interactive flow graph, and play its cutscenes, right in your browser.
 
-Drag the game's folder (or its `data/` folder) into the page. MakerLens Events parses the event commands and renders each event page as a directed graph — dialogue, choice branches, conditional branches with switch and variable names, labels and jumps — laid out automatically. It works on released games: no project, no editor, no plugin.
+Open the game's folder. MakerLens Events reads the event commands and draws each event page as a graph: dialogue, choice branches, conditional branches with switch and variable names, labels and jumps, laid out automatically. It works on released games: no project, no editor, no plugin.
 
-**Private and read-only.** No server, no uploads, no third-party hosts, and your game files are never modified.
+**Private and read-only.** Your game files are read in your browser, never uploaded and never modified.
 
 **Try it:** <https://makerlens.kokoroou.workers.dev/events/> · [FAQ](https://makerlens.kokoroou.workers.dev/events/faq.html)
 
@@ -14,40 +14,45 @@ Part of the **[MakerLens](https://makerlens.kokoroou.workers.dev/)** family: use
 
 > Formerly named LoreInsight. Renamed so the event viewer and the asset viewer share one brand and one audience.
 
+## How to use
+
+1. Open **<https://makerlens.kokoroou.workers.dev/events/>**.
+2. Click **Select Game Folder** (or drop the folder anywhere on the page) and pick the game's **main folder: the one with `Game.exe` in it** (`RPG_RT.exe` for 2000/2003). The viewer finds the data itself, whether it is in `www/data/` (MV), `data/` (MZ), `Data/` or a `Game.rgss3a` / `.rgss2a` / `.rgssad` archive (VX Ace, VX, XP), or `RPG_RT.ldb` (2000/2003). Picking the `data/` folder itself works too. If you pick a folder with no game data (such as `img/`), it says so and tells you to pick the folder above.
+3. The sidebar lists **Scenes**, **Maps** and **Common events**. Click a map to see its events as cards, then click a card to draw that event's graph. Each map event is an NPC, door or trigger on that map; a common event is shared code the game calls from anywhere.
+4. Click a node to read its full text in the inspector (the panel on the right; at the bottom on phones). Follow the arrows to read a conversation in order. If the event has several pages (versions that take over under different conditions, such as a switch being on), switch between them with the page tabs.
+5. **Find an event by name:** type in the search box at the top of the sidebar (press **/** to jump there). It matches event and map names, not the dialogue text.
+
+**Scenes (cutscenes).** An event that shows pictures together with dialogue is listed under Scenes and marked on its card. Press **Preview** (on the card, or in the toolbar once its graph is open) to play it like in the game, with its pictures, faces, music and sounds, line by line.
+
+**Use a save (optional).** Scenes that depend on switches and variables play as the game would at a point in your playthrough if you load a save with **Use a save** in the toolbar (`.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.rxdata`). The save is only read, in your browser.
+
+**Other ways in** (the **View another way** button): pick the data files one by one, or open a link made in a game published with rpgmaker-web-toolkit.
+
+**Phones:** the viewer adapts to small screens (the sidebar opens from the menu button), but phone browsers may not let you pick a folder. A desktop browser works best: Chrome, Edge, Firefox or Brave.
+
+**What is sent.** Nothing about your game. The public site counts anonymous page visits (GoatCounter) and sends feedback only when you choose to; see [Privacy](https://makerlens.kokoroou.workers.dev/assets/privacy.html).
+
 ## Features
 
-- Drag-and-drop or click to open any RPG Maker game folder (MV, MZ, VX Ace, VX, XP, 2000, 2003)
-- Parses `Map###.json`, `CommonEvents.json`, and `MapInfos.json`
-- Renders event command flow as an interactive Cytoscape.js node graph
-- Supports dialogue (101/401), choices (102/402), conditions (111/411), labels (118), and jumps (119)
-- Jump-to-label edges rendered as dashed back-edges for visual clarity
-- Click any node to inspect its full content in the detail panel
-- Switch between event pages with page tabs
-- Sidebar navigation: maps and common events
-- Resizable sidebar, zoom controls, fit-to-screen
-- Same look as MakerLens Assets; light and dark theme follow the system (a manual choice is saved locally)
+- Opens an RPG Maker game folder by picker or drag-and-drop (MV, MZ, VX Ace, VX, XP, 2000, 2003), also from the game's archive
+- Draws each event page as an interactive Cytoscape.js graph; after a choice or condition the flow joins up again
+- Dialogue, choices, conditions (with switch, variable and actor names), labels, and jumps drawn as dashed back-edges
+- Inspector with the full text of any node; page tabs for multi-page events
+- Sidebar with scenes, the map tree and common events, plus search by event or map name
+- Scene player: pictures, faces, music and sound, typed-out messages, auto play
+- Optional save file, so scenes start from your switches and variables
+- Light and dark theme follow the system (a manual choice is saved locally); same look as MakerLens Assets
 - Read-only: nothing is ever written back to the game files
-
-## Usage
-
-1. Open `index.html` in a modern browser (Chrome or Edge recommended for File System Access API support).
-2. Click **Open Folder** or drag your game's root folder onto the page.
-3. Select a map from the sidebar.
-4. Click an event to render its command graph.
-5. Use the page tabs to navigate multi-page events.
-6. Click any node to see its full dialogue, choices, or condition details.
-
-> The tool reads files locally and never transmits any data. Your game files stay on your machine.
 
 ## Supported Engines
 
-| Engine | Status |
+| Engine | Where the events are read from |
 |--------|--------|
-| RPG Maker MV | Supported |
-| RPG Maker MZ | Supported |
-| RPG Maker 2000 / 2003 | Supported: `RPG_RT.lmt` / `RPG_RT.ldb` / `Map####.lmu` (LCF, `js/lcf.js`), Shift-JIS or Windows-1252 text detected; `.xyz` pictures in scene previews |
-| Save files | Optional: **Use a save** reads `.rpgsave` / `.rmmzsave` / `.rvdata2` / `.rvdata` / `.rxdata` so scene previews start from its switches and variables (read-only, stays in the browser) |
-| RPG Maker VX Ace / VX / XP | Supported: `Data/*.rvdata2` / `.rvdata` / `.rxdata` (Ruby Marshal, `js/rgss.js`), also read from `Game.rgss3a` / `.rgss2a` / `.rgssad` |
+| RPG Maker MV / MZ | `data/*.json` (MV: `www/data/`) |
+| RPG Maker VX Ace / VX / XP | `Data/*.rvdata2` / `.rvdata` / `.rxdata` (Ruby Marshal, `js/rgss.js`), also from `Game.rgss3a` / `.rgss2a` / `.rgssad` |
+| RPG Maker 2000 / 2003 | `RPG_RT.lmt` / `RPG_RT.ldb` / `Map####.lmu` (LCF, `js/lcf.js`); Japanese (Shift-JIS) or Western text detected |
+
+Save files (`.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.rxdata`) are read by **Use a save** (`js/save.js`).
 
 ## Node Types
 
@@ -68,19 +73,35 @@ rpgmaker-events-viewer/  # formerly lore-insight; product name is MakerLens Even
   css/                   # Styles split by area; tokens.css = shared MakerLens design tokens (copy of Assets)
   js/
     theme-init.js        # Applies the saved theme before first paint
-    constants.js         # RPG Maker command codes and node colours
+    preboot.js           # Folder button, drops and View another way work before the rest loads
+    constants.js         # RPG Maker command codes, node colours, layout plan
     parser.js            # Event command parser → graph nodes and edges
     state.js             # Global state S
-    graph.js             # Cytoscape setup, style and render
-    detail.js            # Node inspector panel
-    sidebar.js           # Map tree and common events
-    loader.js            # Folder picking and game data parsing
+    graph.js             # Cytoscape setup, style, render and fit
+    detail.js            # Node inspector
+    scenes.js            # Finds scenes (pictures + dialogue) by content
+    scene-script.js      # Runs a scene's commands into steps for the player
+    player.js            # Scene player (pictures, messages, sound)
+    media.js             # Reads and decrypts pictures and audio on demand
+    remote.js            # Game links (rpgmaker-web-toolkit)
+    handoff.js           # Hands the open folder to MakerLens Assets
+    decrypt-rgssad.js    # RGSSAD archives (same file as MakerLens Assets)
+    rgss.js              # VX Ace / VX / XP data (Ruby Marshal)
+    lcf.js               # 2000 / 2003 data (LCF)
+    xyz.js               # 2000 / 2003 .xyz pictures (same file as MakerLens Assets)
+    save.js              # Save files for Use a save
+    search.js            # Sidebar search
+    sidebar.js           # Scenes, map tree and common events
+    loadui.js            # Loading overlay
+    loader.js            # Finding the data, reading it, background map reading
+    feedback.js          # Optional rating and bug/idea form
+    analytics.js         # Anonymous page-view count (public site only)
     app.js               # DOM refs, selection, UI wiring
   vendor/                # Cytoscape, dagre, cytoscape-dagre (MIT)
   docs/
     vision.md            # Product vision and positioning
     ROADMAP.md           # Repositioning as MakerLens Events: phases, gates, stop rule
-  tests/                 # node --test: parser, loader, analytics (synthetic data)
+  tests/                 # node --test on synthetic data (parser, loader, scenes, saves, RGSS, LCF…)
   scripts/
     check-site.mjs       # static checks (JS syntax, CSP, local files)
     assemble-site.sh     # copies the public files for the MakerLens deploy
