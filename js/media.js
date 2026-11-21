@@ -5,11 +5,11 @@
    are decrypted in memory with System.json's key, like MakerLens Assets does; nothing
    is written or sent anywhere. Blob URLs are revoked when another game opens. */
 const RPG_HEADER = [0x52, 0x50, 0x47, 0x4d, 0x56, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0];
-const IMAGE_EXTS = ['png', 'png_', 'rpgmvp', 'jpg', 'jpeg', 'webp'];
+const IMAGE_EXTS = ['png', 'png_', 'rpgmvp', 'jpg', 'jpeg', 'webp', 'xyz', 'bmp'];   // xyz, bmp: RPG Maker 2000/2003
 const AUDIO_EXTS_OGG = ['ogg', 'ogg_', 'rpgmvo', 'm4a', 'm4a_', 'rpgmvm', 'mp3', 'wav'];
 const AUDIO_EXTS_M4A = ['m4a', 'm4a_', 'rpgmvm', 'ogg', 'ogg_', 'rpgmvo', 'mp3', 'wav'];
 const MEDIA_REAL_EXT = { png_: 'png', rpgmvp: 'png', ogg_: 'ogg', rpgmvo: 'ogg', m4a_: 'm4a', rpgmvm: 'm4a' };
-const MEDIA_MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', ogg: 'audio/ogg', m4a: 'audio/mp4', mp3: 'audio/mpeg', wav: 'audio/wav' };
+const MEDIA_MIME = { bmp: 'image/bmp', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', ogg: 'audio/ogg', m4a: 'audio/mp4', mp3: 'audio/mpeg', wav: 'audio/wav' };
 const SCREEN_MV = { width: 816, height: 624 };
 
 // Same as MakerLens Assets' js/decrypt-mvmz.js: drop the 16-byte header, XOR the next 16 with the key.
@@ -102,6 +102,7 @@ function filesRoot(files, prefix) {
 const Media = {
   root: null,          // treeRoot() / filesRoot(), or null (the data/ folder itself was opened)
   key: '',             // System.json encryptionKey
+  rm2k: false,         // RPG Maker 2000/2003 (lcf.js): .xyz images, palette entry 0 transparent
   screen: null,        // Promise<{width, height}>
   urls: new Map(),     // 'img/pictures/name' → Promise<blob URL | null>
 
@@ -110,6 +111,7 @@ const Media = {
     this.urls = new Map();
     this.root = root;
     this.key = (system && system.encryptionKey) || '';
+    this.rm2k = !!(system && system.engine === 'rm2k');
     const adv = system && system.advanced;
     this.screen = adv && adv.screenWidth
       ? Promise.resolve({ width: adv.screenWidth, height: adv.screenHeight })
@@ -149,6 +151,8 @@ const Media = {
             if (!this.key) return null;
             buf = decryptMVMZ(buf, this.key);
           }
+          if (hit.ext === 'xyz') buf = (await xyzToPng(buf)).buffer;   // js/xyz.js, same file as MakerLens Assets
+          if (this.rm2k && /^img\/(pictures|faces)$/.test(folder)) buf = pngTransparent0(new Uint8Array(buf)).buffer;
           const type = sniffMime(buf) || MEDIA_MIME[MEDIA_REAL_EXT[hit.ext] || hit.ext] || '';
           return URL.createObjectURL(new Blob([buf], { type }));
         } catch { return null; }

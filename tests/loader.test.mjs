@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { c, load, plain } from './helpers.mjs';
 import { marshal, obj, rgss3a } from './marshal-writer.mjs';
+import * as L from './lcf-writer.mjs';
 
 // A fake File: what loadFolder() reads from <input webkitdirectory> or the folder picker.
 const file = (path, json) => ({
@@ -24,7 +25,7 @@ function setup() {
     close() { Loader.active = false; calls.closed++; },
     check() { if (calls.cancel) throw new DOMException('cancelled', 'AbortError'); },
   };
-  const get = load(['constants.js', 'parser.js', 'state.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
+  const get = load(['constants.js', 'parser.js', 'state.js', 'decrypt-rgssad.js', 'rgss.js', 'xyz.js', 'lcf.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: cls() }, sbResizer: { classList: cls() } },
     setTimeout, clearTimeout, DOMException, Loader, TextDecoder, TextEncoder,
   });
@@ -115,6 +116,35 @@ test('loads a game whose Data/ is inside Game.rgss3a (only the archive in hand)'
   assert.deepEqual(plain(S.actors), ['', 'Aluxes']);
   assert.equal(S.maps.get(1).events[0].name, 'King');
   assert.equal(S.dataExt, 'rvdata2');
+});
+
+test('loads an RPG Maker 2000/2003 game: RPG_RT.lmt, RPG_RT.ldb and Map####.lmu', async () => {
+  const { get, calls } = setup();
+  const sjTown = [0x92, 0xac], sjHello = [0x82, 0xb1, 0x82, 0xf1, 0x82, 0xc9, 0x82, 0xbf, 0x82, 0xcd];
+  const tree = L.lmt([[0, [[1, L.str('Project')], [4, L.int(0)]]], [1, [[1, sjTown], [2, L.int(0)], [4, L.int(1)], [7, L.int(1)]]], [2, [[1, L.str('Empty')], [2, L.int(1)], [4, L.int(1)]]]]);
+  const db = L.ldb([[0x0b, L.array([[1, [[1, L.str('Alex')]]]])], [0x17, L.array([[1, [[1, sjHello]]]])],
+    [0x19, L.array([[1, [[1, L.str('Bell')], [0x16, L.commands([[10, 0]])]]]])]]);
+  const map1 = L.lmu([[0x51, L.array([[1, [[1, L.str('Guard')], [5, L.array([[1, [[0x34, L.commands([[10110, 0, sjHello], [10, 0]])]]]])]]]])]]);
+  const map2 = L.lmu([[0x51, L.array([])]]);
+  await get('loadFolder')([bin('Yume/RPG_RT.lmt', tree), bin('Yume/RPG_RT.ldb', db), bin('Yume/Map0001.lmu', map1),
+    bin('Yume/Map0002.lmu', map2), bin('Yume/Picture/a.png', new Uint8Array(1))]);
+  await get('S.bgDone');
+  const S = get('S');
+  assert.equal(calls.failed.length, 0, calls.failed.join());
+  assert.equal(S.dataExt, 'lmu');
+  assert.equal(S.lcfEncoding, 'shift_jis');
+  assert.deepEqual(plain(S.mapInfos), { 1: { name: '町', parentId: 0, order: 2, expanded: true }, 2: { name: 'Empty', parentId: 1, order: 3, expanded: false } });
+  assert.deepEqual(plain(S.actors), ['', 'Alex']);
+  assert.deepEqual(plain(S.switches), ['', 'こんにちは']);
+  assert.deepEqual(plain(S.commonEvents.map(e => e.name)), ['Bell']);
+  assert.deepEqual(plain([...S.maps.keys()]), [1], 'the map without events leaves the tree');
+  assert.deepEqual(plain(S.maps.get(1).events[0].pages[0].list[1]), c(401, 0, ['こんにちは']));
+});
+
+test('an RPG Maker 2000/2003 folder without RPG_RT.ldb says so', async () => {
+  const { get, calls } = setup();
+  await get('loadFolder')([bin('G/Map0001.lmu', L.lmu([[0x51, L.array([])]]))]);
+  assert.match(calls.failed.join(), /RPG_RT\.ldb/);
 });
 
 test('also works when only the data/ folder is selected, or with Windows separators', async () => {
@@ -223,6 +253,16 @@ test('findDataFiles: an XP/VX/VX Ace game folder gives its archive, or its Data/
   assert.deepEqual(plain(data.map(f => f._dragPath).sort()), ['Data/Map001.rvdata2', 'Data/System.rvdata2']);
 });
 
+test('findDataFiles: an RPG Maker 2000/2003 game root, without walking its asset folders', async () => {
+  const listed = [];
+  const root = dir({ 'RPG_RT.exe': '', 'RPG_RT.ldb': 'd', 'RPG_RT.lmt': 't', 'Map0001.lmu': 'm', 'RPG_RT.ini': '',
+    CharSet: { 'a.xyz': '' }, Picture: {}, Music: {} }, listed);
+  const files = await get0('findDataFiles')(root, get0('FS_HANDLE'));
+  assert.deepEqual(plain(files.map(f => f._dragPath).sort()), ['Map0001.lmu', 'RPG_RT.ldb', 'RPG_RT.lmt']);
+  assert.deepEqual(listed, ['/']);
+  assert.ok(files.gameRoot && files.gameRoot.node === root, 'the game root is the folder itself');
+});
+
 test('FS_ENTRY keeps calling readEntries until it returns an empty batch (more than 100 files)', async () => {
   const entries = Array.from({ length: 250 }, (_, i) => ({ name: `f${i}`, isDirectory: false }));
   let at = 0;
@@ -300,7 +340,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
   };
   const { calls } = setup();
   // remote.js and media.js load into the same scope as the page's scripts do.
-  const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
+  const load2 = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'xyz.js', 'lcf.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, Response, encodeURIComponent, fetch: fetchImpl,
     Loader: { active: false, open(o) { calls.loader.push(['open', o.name, o.kind]); }, step() {}, detail() {}, progress() {}, commit() {}, fail(m) { calls.failed.push(m); }, close() {}, check() {} },
@@ -339,7 +379,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
 
 test('a link that does not work ends in the loader’s error, not a crash', async () => {
   const { calls } = setup();
-  const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'loader.js'], {
+  const get = (await import('./helpers.mjs')).load(['constants.js', 'parser.js', 'state.js', 'remote.js', 'media.js', 'decrypt-rgssad.js', 'rgss.js', 'xyz.js', 'lcf.js', 'loader.js'], {
     EL: { scanStatus: {}, switchTool: {}, sidebar: { classList: { remove() {}, add() {} } }, sbResizer: { classList: { remove() {}, add() {} } } },
     setTimeout, clearTimeout, DOMException, URL, URLSearchParams, File, Blob, encodeURIComponent,
     fetch: async () => new Response('', { status: 401 }),
