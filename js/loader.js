@@ -11,10 +11,11 @@
 
 const SPINNER = '<span class="status-spinner" aria-hidden="true"></span> ';
 // MV/MZ .json, or XP/VX/VX Ace Ruby Marshal data (js/rgss.js).
-const MAP_FILE  = /^Map(\d{3})\.(json|rvdata2|rvdata|rxdata)$/i;
-const DATA_FILE = /^(MapInfos|Actors|System|CommonEvents|Map\d{3})\.(json|rvdata2|rvdata|rxdata)$/i;
+// RPG Maker 2000/2003 (js/lcf.js): RPG_RT.lmt / RPG_RT.ldb and Map####.lmu at the game root.
+const MAP_FILE  = /^Map(\d{3})\.(json|rvdata2|rvdata|rxdata)$|^Map(\d{4})\.(lmu)$/i;
+const DATA_FILE = /^(MapInfos|Actors|System|CommonEvents|Map\d{3})\.(json|rvdata2|rvdata|rxdata)$|^(RPG_RT\.(ldb|lmt)|Map\d{4}\.lmu)$/i;
 // Folders a game ships that never hold data/: skipped when looking for it.
-const SKIP_DIRS = /^(img|audio|graphics|movies|fonts|effects|icon|js|css|save|locales?|node_modules|\.git)$/i;
+const SKIP_DIRS = /^(img|audio|graphics|movies|fonts|effects|icon|js|css|save|locales?|node_modules|\.git|charset|chipset|faceset|picture|panorama|music|sound|battle2?|battlecharset|battleweapon|monster|backdrop|movie|system2?|title|gameover|frame)$/i;
 const DATA_DEPTH = 3;   // root/, game/, game/www/, game/www/data/
 
 let seq = 0;                // id of the latest load started
@@ -110,7 +111,7 @@ async function loadFiles(files, id, guard) {
   let ext = 'json';             // one engine per game: the map files' extension (json for MV/MZ)
   for (const [path, file] of fileMap) {
     const m = path.split('/').pop().match(MAP_FILE);
-    if (m && (!dataPrefix || path.startsWith(dataPrefix))) { mapFiles.set(parseInt(m[1], 10), file); ext = m[2].toLowerCase(); }
+    if (m && (!dataPrefix || path.startsWith(dataPrefix))) { mapFiles.set(parseInt(m[1] || m[3], 10), file); ext = (m[2] || m[4]).toLowerCase(); }
   }
 
   if (!dataPrefix && mapFiles.size === 0) {
@@ -120,19 +121,33 @@ async function loadFiles(files, id, guard) {
   const engine = typeof rgssEngine === 'function' ? rgssEngine('.' + ext) : null;
   Loader.step('detect', 'done', `${mapFiles.size} map file${mapFiles.size === 1 ? '' : 's'}`);
 
-  // ── read: the four small files, in parallel ──
-  const names = ['MapInfos', 'Actors', 'System', 'CommonEvents'].map(n => n + '.' + ext);
+  // ── read: the four small files, in parallel (RPG Maker 2000/2003: the map tree and the database) ──
+  const lcf = ext === 'lmu';
+  const names = lcf ? ['RPG_RT.lmt', 'RPG_RT.ldb'] : ['MapInfos', 'Actors', 'System', 'CommonEvents'].map(n => n + '.' + ext);
   let read = 0;
   Loader.step('read', 'active', `0/${names.length}`);
   Loader.progress(0, names.length);
-  const [infos, actors, system, cevs] = await Promise.all(names.map(async name => {
+  const got = await Promise.all(names.map(async name => {
     const f = findFile(fileMap, dataPrefix, name);
     let json = null;
-    if (f) { try { json = await readGameData(f, name); } catch {} }
+    if (f) {
+      try { json = lcf ? new Uint8Array(await f.arrayBuffer()) : await readGameData(f, name); } catch {}
+    }
     Loader.detail('read', `${++read}/${names.length}`);
     Loader.progress(read, names.length);
     return json;
   }));
+  let infos, actors, system, cevs, lcfEnc = null;
+  if (lcf) {
+    if (!got[1]) return failLoad('RPG_RT.ldb is missing or unreadable: it holds the database of an RPG Maker 2000/2003 game.');
+    lcfEnc = lcfEncoding(lcfSamples(got[0] || new Uint8Array(0), got[1]));
+    try { infos = got[0] ? lcfMapTree(got[0], lcfEnc) : null; } catch { infos = null; }
+    let db;
+    try { db = lcfDatabase(got[1], lcfEnc); } catch (e) { return failLoad('Could not read RPG_RT.ldb: ' + e.message); }
+    ({ actors, system, commonEvents: cevs } = db);
+  } else {
+    [infos, actors, system, cevs] = got;
+  }
   guard();   // last chance to cancel: from here the new game replaces the open one
 
   // ── commit ──
@@ -152,14 +167,19 @@ async function loadFiles(files, id, guard) {
   S.commonEvents = cevs ? parseCommonEvents(cevs) : [];
   S.maps = new Map();
   S.dataExt = ext;
+  S.lcfEncoding = lcfEnc;   // RPG Maker 2000/2003: the code page of the game's text
   S.save = null;   // a save belongs to the game it came from (save.js)
   if (typeof syncSave === 'function') syncSave();
   S.mapFiles = new Map([...mapFiles].sort((a, b) => a[0] - b[0]));
   // The game folder (parent of data/), for the scene player's pictures and audio (media.js).
   if (typeof Media !== 'undefined') {
+    // RPG Maker 2000/2003 from a file list: the game root is the folder of RPG_RT.ldb.
+    const lcfRoot = lcf && [...fileMap.keys()].find(k => /(^|\/)RPG_RT\.ldb$/i.test(k));
     let root = files.mediaRoot || (files.gameRoot ? treeRoot(files.gameRoot.fs, files.gameRoot.node)
+      : lcfRoot ? filesRoot(fileMap, lcfRoot.replace(/RPG_RT\.ldb$/i, ''))
       : dataPrefix ? filesRoot(fileMap, dataPrefix.replace(/data\/$/i, '')) : null);
     if (engine) root = rgssMediaRoot(root);   // Graphics/ where MV has img/
+    if (lcf) root = lcfMediaRoot(root);       // Picture/, FaceSet/, Music/, Sound/
     Media.reset(root, system);
   }
   S.remoteLink = files.remoteLink || null;   // only a game link keeps one
@@ -202,7 +222,11 @@ async function openMap(mapId) {
 async function readMap(mapId, id) {
   const file = S.mapFiles.get(mapId);
   let data = null;
-  try { data = parseMapJson(await readGameData(file, `Map${String(mapId).padStart(3, '0')}.${S.dataExt || 'json'}`), mapId, S.mapInfos); } catch {}
+  try {
+    const json = S.dataExt === 'lmu' ? lcfMap(new Uint8Array(await file.arrayBuffer()), S.lcfEncoding)
+      : await readGameData(file, `Map${String(mapId).padStart(3, '0')}.${S.dataExt || 'json'}`);
+    data = parseMapJson(json, mapId, S.mapInfos);
+  } catch {}
   if (id !== current) return null;   // another game was opened meanwhile
   S.mapFiles.delete(mapId);
   if (data && data.events.length > 0) S.maps.set(mapId, data);
@@ -356,7 +380,8 @@ async function findDataFiles(root, fs, onDir) {
           text: () => fs.file(k.node).then(f => f.text()),
           arrayBuffer: () => fs.file(k.node).then(f => f.arrayBuffer()),
         }));
-        out.gameRoot = parent ? { fs, node: parent } : null;
+        // data/'s parent is the game root; RPG Maker 2000/2003 keeps its data in the root itself.
+        out.gameRoot = files.some(k => /\.lmu$/i.test(k.name)) ? { fs, node: dir } : parent ? { fs, node: parent } : null;
         return out;
       }
       kids.filter(k => k.isDir && !SKIP_DIRS.test(k.name))

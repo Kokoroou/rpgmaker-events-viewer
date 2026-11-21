@@ -18,6 +18,7 @@ const CONDITION_TYPES = {
   4: 'Actor',  5: 'Enemy',    6: 'Character',   7: 'Gold',
   8: 'Item',   9: 'Weapon',  10: 'Armor',       11: 'Button',
   12: 'Script',
+  99: 'Other',   // RPG Maker 2000/2003 kinds MV has no match for (lcf.js)
 };
 
 const VISIBLE_CODES = new Set([101, 102, 111, 118, 119]);

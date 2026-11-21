@@ -371,6 +371,8 @@ const Player = {
     if (face) {
       const idx = msg.faceIndex || 0;
       el.face.style.backgroundPosition = `${-(idx % 4) * PLAYER_FACE}px ${-Math.floor(idx / 4) * PLAYER_FACE}px`;
+      // RPG Maker 2000/2003 FaceSet: 4×4 faces of 48 px, drawn at the same 144 px.
+      el.face.style.backgroundSize = Media.rm2k ? `${4 * PLAYER_FACE}px ${4 * PLAYER_FACE}px` : '';
       el.face.style.backgroundImage = '';
       el.face.dataset.name = face;
       Media.image('img/faces', face).then(u => {
