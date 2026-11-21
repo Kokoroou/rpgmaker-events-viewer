@@ -4,7 +4,7 @@
 
 ## What it does
 
-Open a released RPG Maker MV or MZ game (the game folder, or its `data/` folder) and MakerLens Events parses `MapInfos.json`, `Map###.json`, `CommonEvents.json`, `Actors.json` and `System.json` in your browser. VX Ace, VX and XP games work too: their `Data/*.rvdata2` / `.rvdata` / `.rxdata` files (Ruby Marshal) are read from the folder or from inside `Game.rgss3a` / `.rgss2a` / `.rgssad`. RPG Maker 2000/2003 games work from their folder too (`RPG_RT.ldb`, `RPG_RT.lmt`, `Map####.lmu`, LCF format, Shift-JIS or Western text). Each event page is drawn as a flow graph, with switch, variable and actor names resolved from the game's data. No project, no editor, no plugin.
+Open a released RPG Maker game (the game folder, or its `data/` folder). For MV and MZ, MakerLens Events parses `MapInfos.json`, `Map###.json`, `CommonEvents.json`, `Actors.json` and `System.json` in your browser. VX Ace, VX and XP games work too: their `Data/*.rvdata2` / `.rvdata` / `.rxdata` files (Ruby Marshal) are read from the folder or from inside `Game.rgss3a` / `.rgss2a` / `.rgssad`. RPG Maker 2000/2003 games work from their folder too (`RPG_RT.ldb`, `RPG_RT.lmt`, `Map####.lmu`, LCF format, Shift-JIS or Western text). Each event page is drawn as a flow graph, with switch, variable and actor names resolved from the game's data. No project, no editor, no plugin.
 
 - Optional save file (MV `.rpgsave`, MZ `.rmmzsave`, VX Ace `.rvdata2`, VX `.rvdata`, XP `.rxdata`): scene previews then follow that save's switches, variables and party (read only, never uploaded)
 - Dialogue (including speaker names), choices and their branches
