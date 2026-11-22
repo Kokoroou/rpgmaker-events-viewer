@@ -57,6 +57,29 @@ function screenFromPlugins(text) {
   return width && height ? { width, height } : null;
 }
 
+// The stage size a picture shows, or null to keep `stage` ({width, height, guess}).
+// Only when the screen size is a guess (MV's default: no System.json size, no plugin
+// we could read; VX / VX Ace's 544×416, which a script may resize): a picture at the top-left corner clearly wider than that and about
+// as tall, with a screen's landscape shape (4:3 … 16:9), says the game runs at its
+// size (no longer a guess: it grows once). A known screen never changes: bigger pictures are clipped like in the game,
+// and a portrait or sprite-sheet picture or a few pixels of overscan says nothing.
+function stageFromPicture(stage, w, h) {
+  if (!stage || !stage.guess || !w || !h || w > 4096) return null;
+  const aspect = w / h;
+  if (aspect < 1.2 || aspect > 1.9) return null;
+  if (w < stage.width * 1.1 || h < stage.height * 0.9) return null;
+  return { width: w, height: h };
+}
+
+// Olivia_AnimatedPictures: a picture named "Name[CxR]" is a sprite sheet of C columns
+// and R rows, of which the game shows one frame at a time. → {cols, rows}, or null.
+function pictureFrames(name) {
+  const m = /\[(\d+)x(\d+)\]/i.exec(String(name || ''));
+  if (!m) return null;
+  const cols = +m[1], rows = +m[2];
+  return cols >= 1 && rows >= 1 && cols * rows > 1 ? { cols, rows } : null;
+}
+
 /* Game roots. Both answer list(dir) → Map(lower-case name → entry) and file(entry) → File.
    - tree: a folder handle / drag & drop entry, listed with loader.js's FS_HANDLE / FS_ENTRY;
    - files: the File list of <input webkitdirectory> (every file is already in hand). */
@@ -103,7 +126,8 @@ const Media = {
   root: null,          // treeRoot() / filesRoot(), or null (the data/ folder itself was opened)
   key: '',             // System.json encryptionKey
   rm2k: false,         // RPG Maker 2000/2003 (lcf.js): .xyz images, palette entry 0 transparent
-  screen: null,        // Promise<{width, height}>
+  screen: null,        // Promise<{width, height, guess?}> (guess: MV's default, nothing read)
+  grown: null,         // the screen size a picture showed (stageFromPicture), for the whole game
   urls: new Map(),     // 'img/pictures/name' → Promise<blob URL | null>
 
   reset(root, system) {
@@ -112,10 +136,13 @@ const Media = {
     this.root = root;
     this.key = (system && system.encryptionKey) || '';
     this.rm2k = !!(system && system.engine === 'rm2k');
+    this.grown = null;
     const adv = system && system.advanced;
     this.screen = adv && adv.screenWidth
-      ? Promise.resolve({ width: adv.screenWidth, height: adv.screenHeight })
-      : this.text('js/plugins.js').then(t => (t && screenFromPlugins(t)) || SCREEN_MV);
+      ? Promise.resolve(adv.screenGuess
+        ? { width: adv.screenWidth, height: adv.screenHeight, guess: true }
+        : { width: adv.screenWidth, height: adv.screenHeight })
+      : this.text('js/plugins.js').then(t => (t && screenFromPlugins(t)) || { ...SCREEN_MV, guess: true });
   },
 
   async find(path, exts) {

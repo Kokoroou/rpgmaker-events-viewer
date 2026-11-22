@@ -14,8 +14,9 @@
 const RGSS_DATA_EXT = /\.(rvdata2|rvdata|rxdata)$/i;
 const RGSS_ARCHIVE = /\.(rgss3a|rgss2a|rgssad)$/i;
 const RGSS_ENGINE = { rxdata: 'xp', rvdata: 'vx', rvdata2: 'vxace' };
-// Screen size of each engine (Graphics.width/height defaults).
-const RGSS_SCREEN = { xp: { width: 640, height: 480 }, vx: { width: 544, height: 416 }, vxace: { width: 544, height: 416 } };
+// Screen size of each engine (Graphics.width/height defaults). VX / VX Ace games often
+// call Graphics.resize_screen (up to 640×480) in a script we do not run: only a guess.
+const RGSS_SCREEN = { xp: { width: 640, height: 480 }, vx: { width: 544, height: 416, guess: true }, vxace: { width: 544, height: 416, guess: true } };
 
 function rgssEngine(name) {
   const m = String(name).match(RGSS_DATA_EXT);
@@ -277,7 +278,9 @@ function rgssData(kind, v, engine) {
       switches: names(v && v.switches),
       variables: names(v && v.variables),
       partyMembers: Array.isArray(v && v.party_members) ? v.party_members.map(n => n | 0) : [],
-      advanced: { screenWidth: screen.width, screenHeight: screen.height },
+      advanced: screen.guess
+        ? { screenWidth: screen.width, screenHeight: screen.height, screenGuess: true }
+        : { screenWidth: screen.width, screenHeight: screen.height },
     };
   }
   return null;

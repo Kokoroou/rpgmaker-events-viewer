@@ -50,6 +50,42 @@ test('screenFromPlugins reads MV resolution plugins (plain and escaped JSON)', (
   assert.equal(f('"Window Width":"300"'), null);
 });
 
+test('stageFromPicture grows a guessed screen only to a screen-shaped picture', () => {
+  const { run } = setup([]);
+  const f = (stage, w, h) => { const r = run('stageFromPicture')(stage, w, h); return r && { ...r }; };
+  const guess = { width: 816, height: 624, guess: true };
+  assert.deepEqual(f(guess, 1024, 768), { width: 1024, height: 768 }, 'unread resolution plugin');
+  assert.deepEqual(f(guess, 1280, 720), { width: 1280, height: 720 });
+  assert.deepEqual(f({ width: 544, height: 416, guess: true }, 640, 480), { width: 640, height: 480 }, 'VX Ace resize_screen');
+  assert.equal(f(guess, 832, 624), null, 'a few pixels of overscan');
+  assert.equal(f(guess, 840, 945), null, 'portrait picture');
+  assert.equal(f(guess, 1632, 2496), null, 'sprite sheet');
+  assert.equal(f(guess, 5000, 3000), null, 'too big to be a screen');
+  assert.equal(f({ width: 1280, height: 720 }, 1920, 1080), null, 'a known screen never changes');
+  assert.equal(f(null, 1024, 768), null);
+});
+
+test('pictureFrames reads a sprite sheet\'s [CxR] from the picture name', () => {
+  const { run } = setup([]);
+  const f = name => { const r = run('pictureFrames')(name); return r && { ...r }; };
+  assert.deepEqual(f('Hero_walk[2x4]'), { cols: 2, rows: 4 });
+  assert.deepEqual(f('sub/Flame[6X1]_b'), { cols: 6, rows: 1 }, 'case and text around it');
+  assert.equal(f('Plain'), null);
+  assert.equal(f('One[1x1]'), null, 'a single frame is the whole picture');
+  assert.equal(f('Zero[0x4]'), null);
+  assert.equal(f('Note[2]'), null);
+  assert.equal(f(''), null);
+});
+
+test('Media.screen marks MV\'s default size as a guess', async () => {
+  const { run, files } = setup([['Game/www/data/Map001.json', new ArrayBuffer(2)]]);
+  run('globalThis').__files = files;
+  run(`Media.reset(filesRoot(__files, 'Game/www/'), {})`);
+  assert.deepEqual({ ...await run('Media.screen') }, { width: 816, height: 624, guess: true });
+  run('Media.reset(null, { advanced: { screenWidth: 544, screenHeight: 416, screenGuess: true } })');
+  assert.deepEqual({ ...await run('Media.screen') }, { width: 544, height: 416, guess: true });
+});
+
 test('Media finds files case-insensitively under the game root and decrypts them', async () => {
   const { run, files } = setup([
     ['Game/www/data/Map001.json', new ArrayBuffer(2)],

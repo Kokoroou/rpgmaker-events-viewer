@@ -123,6 +123,8 @@ test('rgssData: MapInfos, CommonEvents, Actors, System', () => {
     game_title: 'Demo', switches: [null, 'Met guard', ''], variables: [null, 'Gold count'], party_members: [1, 2] }))), 'xp');
   assert.deepEqual(plain(sys), { gameTitle: 'Demo', switches: ['', 'Met guard', ''], variables: ['', 'Gold count'],
     partyMembers: [1, 2], advanced: { screenWidth: 640, screenHeight: 480 } });
+  const aceSys = js.rgssData('System', js.marshalLoad(marshal(obj('RPG::System', { game_title: 'Demo' }))), 'vxace');
+  assert.deepEqual(plain(aceSys).advanced, { screenWidth: 544, screenHeight: 416, screenGuess: true }, 'a script may resize it');
 });
 
 test('readGameData: json as is, RGSS data through Marshal', async () => {
