@@ -490,6 +490,10 @@
     <button class="btn-icon" id="alt-close" type="button" aria-label="Close"><svg width="18" height="18" aria-hidden="true"><use href="#i-x"/></svg></button>
   </div>
   <div id="alt-menu" class="alt-list">
+    <button class="alt-opt" id="alt-archive" type="button">
+      <svg width="22" height="22" aria-hidden="true"><use href="#i-file"/></svg>
+      <span><strong>Archive</strong><small>A packed game: <code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code></small></span>
+    </button>
     <button class="alt-opt" id="alt-files" type="button">
       <svg width="22" height="22" aria-hidden="true"><use href="#i-file"/></svg>
       <span><strong>Data files</strong><small>Pick the files from the game's <code>data/</code> folder yourself, such as <code>Map001.json</code>, <code>.rvdata2</code> or <code>RPG_RT.ldb</code></small></span>
@@ -514,6 +518,7 @@
 <!-- Hidden fallback file input -->
 <input type="file" id="folder-input" webkitdirectory multiple accept="">
 <input type="file" id="save-input" accept=".rpgsave,.rmmzsave,.rvdata2,.rvdata,.rxdata">
+<input type="file" id="archive-input" accept=".rgss3a,.rgss2a,.rgssad">
 <input type="file" id="files-input" multiple accept=".json,application/json,.rvdata2,.rvdata,.rxdata,.rgss3a,.rgss2a,.rgssad,.ldb,.lmt,.lmu">
 
 <!-- Folder picking works at once; the graph libraries (vendor/, see js/graph.js) load after the app -->

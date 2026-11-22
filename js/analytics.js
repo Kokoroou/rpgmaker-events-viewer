@@ -9,7 +9,7 @@
 // NEVER sent: file or folder names, game titles, map/event names, dialogue or
 //             any other game data. Do not add any of those here (CLAUDE.md).
 //
-// Events: countEvent(name) counts one of the fixed names in EVENTS: how a game was opened and
+// Events: countEvent(name) (sent as 'ev-' + name: the page code comes first) counts one of the fixed names in EVENTS: how a game was opened and
 // whether that worked, the engine family, which features were used and the switch to MakerLens
 // Assets. Only the name is sent (never a file, map or event name, text or search words), and each
 // name at most ONCE per page load, so a count means "page loads where this happened". It returns
@@ -22,10 +22,13 @@ var countEvent = function () { return Promise.resolve(); };
   'use strict';
   var GC_ENDPOINT = 'https://makerlens.goatcounter.com/count';
   var PUBLIC_HOST = 'makerlens.kokoroou.workers.dev';
+  // Every name goes out with the page code in front, so the counter tells the tools apart:
+  // 'ev-' = MakerLens Events, 'as-' = MakerLens Assets (e.g. ev-open-ok, as-open-ok).
+  var PAGE = 'ev-';
   var EVENTS = [
     // How a game was opened (the way, never what): folder picker, folder or file drop,
-    // <input webkitdirectory>, data files picked one by one, game link, handed over from Assets.
-    'open-picker', 'open-drop', 'open-input', 'open-files', 'open-link', 'open-handoff',
+    // <input webkitdirectory>, a Game.rgss3a-style archive, data files picked one by one, game link, handed over from Assets.
+    'open-picker', 'open-drop', 'open-input', 'open-archive', 'open-files', 'open-link', 'open-handoff',
     // How it ended. nomedia = the picked folder holds no game data (wrong folder picked).
     'open-ok', 'open-cancel', 'open-fail-nomedia', 'open-fail-other',
     // The folder picker is missing in this browser (Firefox, Safari, Android): the fallback runs.
@@ -34,7 +37,8 @@ var countEvent = function () { return Promise.resolve(); };
     'engine-mv', 'engine-mz', 'engine-mvmz', 'engine-xp', 'engine-vx', 'engine-vxace', 'engine-2k', 'engine-other',
     // Features used.
     'graph-view', 'scene-preview', 'save-used', 'search-used',
-    'switch-to-assets'
+    // The feedback card (js/feedback.js): only that it was shown, skipped or answered, never the rating or text.
+    'feedback-shown', 'feedback-skipped', 'feedback-sent', 'switch-to-assets'
   ];
   var sentOnce = {};
   // Query params GoatCounter reads as traffic source / campaign. Nothing else is sent.
@@ -64,7 +68,7 @@ var countEvent = function () { return Promise.resolve(); };
       img.onload = img.onerror = function () { resolve(); };
       setTimeout(resolve, 400);
       img.src = GC_ENDPOINT + '?' + new URLSearchParams({
-        p: name, t: name, e: 'true', rnd: Math.random().toString(36).slice(2)
+        p: PAGE + name, t: PAGE + name, e: 'true', rnd: Math.random().toString(36).slice(2)
       }).toString();
     });
   };

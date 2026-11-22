@@ -97,6 +97,13 @@ var Preboot = (function () {
     openBtn.addEventListener('click', submit);
     linkInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') submit(); });
     byId('alt-files').addEventListener('click', function () { alt.close(); byId('files-input').click(); });
+    byId('alt-archive').addEventListener('click', function () { alt.close(); byId('archive-input').click(); });
+    var ain = byId('archive-input');
+    ain.addEventListener('change', function () {
+      if (P.ready) return;
+      var files = slice.call(ain.files); ain.value = '';
+      if (files.length) deliver('archive', files);
+    });
     var fin = byId('files-input');
     fin.addEventListener('change', function () {
       if (P.ready) return;

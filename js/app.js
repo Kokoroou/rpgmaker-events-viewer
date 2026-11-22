@@ -252,6 +252,12 @@ function init() {
     if (e.target.files.length) loadFolder([...e.target.files]);
   });
 
+  document.getElementById('archive-input').addEventListener('change', e => {
+    const picked = [...e.target.files];
+    e.target.value = '';
+    if (picked.length) loadFolder(picked, 'open-archive');
+  });
+
   document.getElementById('files-input').addEventListener('change', e => {
     const picked = [...e.target.files];
     e.target.value = '';
@@ -389,6 +395,7 @@ function init() {
     files: files => loadFolder(files),
     error: e => setStatus('err', 'Could not open folder: ' + e.message),
     loose: files => loadFolder(files, 'open-files'),
+    archive: files => loadFolder(files, 'open-archive'),
     busy: () => Loader.active,
     // The View another way dialog (js/preboot.js) hands over the pasted link: an error message or null.
     link: text => {
