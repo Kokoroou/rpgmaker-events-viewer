@@ -111,7 +111,18 @@ async function expandArchive(files, guard) {
 // What to say when the picked folder holds no game: name the folder and say which one to pick.
 // A folder inside the game (img/, audio/, Graphics/, img/pictures…) gets "the folder above it".
 const INNER_DIRS = /^(pictures|faces|characters|enemies|sv_actors|sv_enemies|tilesets|titles[12]|parallaxes|battlebacks[12]|animations|bgm|bgs|me|se)$/i;
+// Engines we recognise but do not read: said plainly instead of "no game data".
+function otherEngine(paths) {
+  for (const raw of paths || []) {
+    const p = String(raw).replace(/\\/g, '/').toLowerCase();
+    if (/(^|\/)[^/]*\.wolf$/.test(p)) return 'Wolf RPG Editor';
+    if (/(^|\/)unityplayer\.dll$/.test(p) || /(^|\/)[^/]+_data\/(globalgamemanagers|level\d+|sharedassets\d+)/.test(p)) return 'Unity';
+  }
+  return '';
+}
 function notGameMessage(name, paths) {
+  const other = otherEngine(paths);
+  if (other) return `This looks like a ${other} game. MakerLens Events supports RPG Maker (2000/2003/XP/VX/VX Ace/MV/MZ) only.`;
   const top = name || ((paths && paths[0]) || '').split('/')[0];
   const where = 'the game\'s main folder: the one that holds data/ (or Data/, or RPG_RT.ldb), usually next to Game.exe';
   if (top && (SKIP_DIRS.test(top) || INNER_DIRS.test(top)))
@@ -120,6 +131,7 @@ function notGameMessage(name, paths) {
 }
 
 async function loadFiles(files, id, guard, name) {
+  const seen = files.seen || [];   // names findDataFiles saw, when it found nothing to list
   files = await expandArchive(files, guard);
   const fileMap = new Map();
   for (const f of files) {
@@ -149,7 +161,10 @@ async function loadFiles(files, id, guard, name) {
   }
 
   if (!dataPrefix && mapFiles.size === 0) {
-    return failLoad(notGameMessage(name, [...fileMap.keys()]), 'open-fail-nomedia');
+    return failLoad(notGameMessage(name, [...fileMap.keys(), ...seen]), 'open-fail-nomedia');
+  }
+  if (mapFiles.size === 0 && otherEngine([...fileMap.keys(), ...seen])) {
+    return failLoad(notGameMessage(name, [...fileMap.keys(), ...seen]), 'open-fail-nomedia');
   }
   if (mapFiles.size === 0) return failLoad('No map files (Map###.json, .rvdata2, .rvdata or .rxdata) found in the data folder.');
   const engine = typeof rgssEngine === 'function' ? rgssEngine('.' + ext) : null;
@@ -398,11 +413,13 @@ const FS_ENTRY = {
 // it (the game root, where img/ and audio/ live) rides along as files.gameRoot.
 async function findDataFiles(root, fs, onDir) {
   let level = [{ dir: root, path: '', parent: null }];
+  const seen = [];   // every name listed, for notGameMessage() when nothing is found
   for (let depth = 0; depth <= DATA_DEPTH && level.length; depth++) {
     const next = [];
     for (const { dir, path, parent } of level) {
       if (onDir) onDir(path);
       const kids = await fs.list(dir);
+      for (const k of kids) seen.push(path + k.name + (k.isDir ? '/' : ''));
       const files = kids.filter(k => !k.isDir && DATA_FILE.test(k.name));
       const arch = kids.find(k => !k.isDir && RGSS_ARCHIVE.test(k.name));
       if (arch && !files.some(k => MAP_FILE.test(k.name))) {   // XP/VX/VX Ace: Data/ is in the archive
@@ -427,7 +444,9 @@ async function findDataFiles(root, fs, onDir) {
     }
     level = next;
   }
-  return [];
+  const none = [];
+  none.seen = seen;
+  return none;
 }
 
 async function openWithFSAPI() {

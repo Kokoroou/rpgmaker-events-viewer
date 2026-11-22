@@ -412,3 +412,36 @@ test('a link that does not work ends in the loader’s error, not a crash', asyn
   await get('openRemote(__link)');
   assert.match(calls.failed[0], /expired or was stopped/);
 });
+
+const WOLF = /This looks like a Wolf RPG Editor game\. MakerLens Events supports RPG Maker/;
+const UNITY = /This looks like a Unity game\. MakerLens Events supports RPG Maker/;
+
+test('a Wolf RPG Editor or Unity file list says the engine is not supported', async () => {
+  for (const [paths, re] of [
+    [['Sample/Game.exe', 'Sample/Data.wolf'], WOLF],
+    [['Data/BasicData.wolf', 'Data/MapData.wolf'], WOLF],
+    [['Sample/UnityPlayer.dll', 'Sample/Sample.exe'], UNITY],
+    [['Sample/Sample_Data/globalgamemanagers', 'Sample/Sample_Data/level0'], UNITY],
+    [['Sample/Sample_Data/sharedassets1.assets'], UNITY],
+  ]) {
+    const { get, calls } = setup();
+    await get('loadFolder')(paths.map(p => file(p, '')));
+    assert.match(calls.status.at(-1)[1], re);
+    assert.match(calls.failed[0], re);
+  }
+});
+
+test('a Wolf or Unity folder behind a directory handle is recognised too', async () => {
+  for (const [tree, re] of [
+    [{ 'Game.exe': '', 'Data.wolf': '' }, WOLF],
+    [{ Data: { 'BasicData.wolf': '' } }, WOLF],
+    [{ 'UnityPlayer.dll': '', Sample_Data: { globalgamemanagers: '' } }, UNITY],
+  ]) {
+    const { get } = setup();
+    const files = await get('findDataFiles')(dir(tree, []), get('FS_HANDLE'));
+    assert.equal(files.length, 0);
+    assert.match(get('notGameMessage')('Sample', files.seen), re);
+  }
+  const { get } = setup();
+  assert.match(get('notGameMessage')('Photos', ['Photos/cat.png']), /No RPG Maker game data found/);
+});
