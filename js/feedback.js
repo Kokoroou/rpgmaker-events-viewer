@@ -36,6 +36,7 @@ const FB_MAX_LEN  = 1000;
 const fbFresh  = () => ({ v: 1, opens: 0, done: false, skips: 0, nextAt: FB_ASK_AT });
 const fbBucket = n => n <= 0 ? '' : n <= 2 ? String(n) : n <= 5 ? '3-5' : n <= 10 ? '6-10' : '11+';
 const fbShouldAsk = s => !s.done && s.skips < FB_MAX_SKIP && s.opens >= s.nextAt;
+const fbEvent = name => { if (typeof countEvent === 'function') countEvent(name); };   // js/analytics.js: the name only
 const fbLang = l => String(l || '').slice(0, 2).toLowerCase().replace(/[^a-z]/g, '');
 
 // "Chrome 131 · Windows": shown in the bug form, so the user sees exactly what is sent.
@@ -150,6 +151,7 @@ const Feedback = (() => {
       if (!card.hidden) return;
       if (busy()) { if (++tries < 120) showTimer = setTimeout(tryShow, 1000); return; }
       open('rate');
+      fbEvent('feedback-shown');
     };
     showTimer = setTimeout(tryShow, 1500);
   }
@@ -159,6 +161,7 @@ const Feedback = (() => {
     if (view === 'rate') {
       const s = load();
       if (s && !s.done) { s.skips = (s.skips || 0) + 1; s.nextAt = s.opens + FB_SKIP_GAP; save(s); }
+      fbEvent('feedback-skipped');
     }
     close();
   }
@@ -208,6 +211,7 @@ const Feedback = (() => {
     if (!ok) { card.querySelectorAll('input[name="fb-rating"]').forEach(r => { r.checked = false; }); return; }
     const s = load();
     if (s) { s.done = true; save(s); }
+    fbEvent('feedback-sent');
     $f('fb-follow-q').textContent = n <= 3 ? 'What went wrong?' : n === 4 ? 'What would make it 5?' : 'What do you like most?';
     setView('follow');
   }

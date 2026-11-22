@@ -45,12 +45,13 @@ test('countEvent: only the fixed switch name is sent, as an event with no other 
   const done = countEvent('switch-to-assets');
   assert.equal(sent.length, 1);
   assert.deepEqual([...sent[0].searchParams.keys()].sort(), ['e', 'p', 'rnd', 't']);
-  assert.equal(sent[0].searchParams.get('p'), 'switch-to-assets');
+  assert.equal(sent[0].searchParams.get('p'), 'ev-switch-to-assets');   // page code first
+  assert.equal(sent[0].searchParams.get('t'), 'ev-switch-to-assets');
   assert.equal(sent[0].searchParams.get('e'), 'true');
   images[0].onload();
   await done;                                   // resolves once the pixel is answered
   await countEvent('Map001');                   // anything else is dropped
-  await countEvent('feedback-sent');            // Events does not count the feedback card
+  await countEvent('ev-switch-to-assets');      // the prefix is added by countEvent, never passed in
   assert.equal(sent.length, 1);
 });
 
@@ -72,16 +73,16 @@ test('countEvent sends each name at most once per page load', async () => {
   await countEvent('graph-view');
   await countEvent('graph-view');
   await countEvent('open-ok');
-  assert.deepEqual(sent.map(u => u.searchParams.get('p')), ['graph-view', 'open-ok']);
+  assert.deepEqual(sent.map(u => u.searchParams.get('p')), ['ev-graph-view', 'ev-open-ok']);
   for (const u of sent) assert.deepEqual([...u.searchParams.keys()].sort(), ['e', 'p', 'rnd', 't']);
 });
 
 test('every name the app counts is in the list analytics.js sends', async () => {
   const { readFileSync } = await import('node:fs');
   const read = f => readFileSync(new URL(`../js/${f}`, import.meta.url), 'utf8');
-  const src = ['app.js', 'loader.js', 'player.js', 'sidebar.js'].map(read).join('\n');
+  const src = ['app.js', 'loader.js', 'player.js', 'sidebar.js', 'feedback.js'].map(read).join('\n');
   const list = read('analytics.js');
-  const used = new Set([...src.matchAll(/\b(?:track|failLoad\([^)]*?,)\s*\(?\s*'([a-z0-9-]+)'/g)].map(m => m[1]));
+  const used = new Set([...src.matchAll(/\b(?:track|fbEvent|failLoad\([^)]*?,)\s*\(?\s*'([a-z0-9-]+)'/g)].map(m => m[1]));
   for (const m of src.matchAll(/(?:, |way = )'(open-[a-z0-9-]+)'/g)) used.add(m[1]);
   for (const m of read('constants.js').matchAll(/'(engine-[a-z0-9]+)'/g)) used.add(m[1]);
   assert.ok(used.size > 18, [...used].join(' '));
@@ -95,4 +96,11 @@ test('engineEvent maps engine labels to the fixed engine names (same as MakerLen
     ['RPG Maker VX', 'engine-vx'], ['RPG Maker VX Ace', 'engine-vxace'], ['RPG Maker 2000/2003', 'engine-2k'], [null, 'engine-other'],
   ];
   for (const [label, want] of cases) assert.equal(engineEvent(label), want, String(label));
+});
+
+test('feedback card and archive events are counted, with the page code first', async () => {
+  const { sent, countEvent } = setup();
+  sent.length = 0;
+  for (const n of ['feedback-shown', 'feedback-skipped', 'feedback-sent', 'open-archive']) await countEvent(n);
+  assert.deepEqual(sent.map(u => u.searchParams.get('p')), ['ev-feedback-shown', 'ev-feedback-skipped', 'ev-feedback-sent', 'ev-open-archive']);
 });
