@@ -153,7 +153,7 @@ function sceneBestCondition(st, p, indent, getCommon) {
 // Control Variables (122): [first, last, 0 set / 1 + / 2 - / 3 × / 4 ÷ / 5 mod,
 // 0 constant / 1 variable / 2 random min..max / 3 game data / 4 script, operand, max].
 function sceneControlVariables(st, p) {
-  const val = p[3] === 0 || p[3] === 2 ? +p[4] : p[3] === 1 ? st.vars[p[4]] : undefined;
+  const val = p[3] === 0 || p[3] === 2 ? +p[4] : p[3] === 1 ? st.vars[p[4]] : p[3] === 4 ? sceneScriptName(st, p[4]) : undefined;
   for (let id = p[0]; id <= p[1]; id++) {
     const cur = st.vars[id];
     if (val === undefined || (p[2] !== 0 && cur === undefined)) { delete st.vars[id]; continue; }
@@ -161,6 +161,17 @@ function sceneControlVariables(st, p) {
     if (out === undefined) delete st.vars[id];
     else st.vars[id] = out;
   }
+}
+
+// A script operand that reads an actor's name: $gameActors.actor(N).name(),
+// $game_actors[N].name or $gameParty.members()[I].name(); undefined for anything else.
+function sceneScriptName(st, src) {
+  const t = String(src || '').trim().replace(/;$/, '');
+  let m = /^\$gameActors\.actor\(\s*(\d+)\s*\)\.name(?:\(\))?$/.exec(t) || /^\$game_actors\[\s*(\d+)\s*\]\.name$/.exec(t);
+  let id = m ? +m[1] : 0;
+  if (!m && (m = /^\$gameParty\.members\(\)\[\s*(\d+)\s*\]\.name\(\)$/.exec(t))) id = sceneParty(st)[+m[1]] || 0;
+  const a = id ? sceneActor(st, id) : null;
+  return a && a.name ? a.name : undefined;
 }
 
 /* ── Actors: the game's starting state ──
@@ -448,21 +459,28 @@ function scenePlace(p, st) {
 
 // Text codes: actor names resolved, the speaker of "\n<Name>" (Yanfly message core)
 // lifted out, HTML-like tags handled by textTags() (<br> = new line), every other
-// control code (\C[2], \I[5], \., \| …) dropped.
-function sceneText(str) {
+// control code (\C[2], \I[5], \., \|, \# …) dropped. \V[n]: the scene's value when
+// known, else the variable's name in System.json, else "?".
+function sceneText(str, st) {
   return textTags(typeof locText === 'function' ? locText(str) : str)
     .replace(/\\\\/g, '\u0000')
-    .replace(/\\[Nn]\[(\d+)\]/g, (_, n) => (typeof S !== 'undefined' && S.actors[+n]) || '')
-    .replace(/\\[Vv]\[(\d+)\]/g, '?')
+    .replace(/\\[Nn]\[(\d+)\]/g, (_, n) => {
+      const a = st && sceneActor(st, +n);
+      return (a && a.name) || (typeof S !== 'undefined' && S.actors[+n]) || '';
+    })
+    .replace(/\\[Vv]\[(\d+)\]/g, (_, n) => {
+      if (st && +n in st.vars) return String(st.vars[+n]);
+      return (typeof S !== 'undefined' && S.variables && S.variables[+n]) || '?';
+    })
     .replace(/\\[A-Za-z]+\[[^\]]*\]/g, '')
     .replace(/\\[A-Za-z]+<[^>]*>/g, '')
-    .replace(/\\[.|!><^{}$]/g, '')
+    .replace(/\\[.|!><^{}$#]/g, '')
     .replace(/\\[A-Za-z]+/g, '')
     .replace(/\u0000/g, '\\');
 }
 
 // Show Text (101): [faceName, faceIndex, background, position, speakerName (MZ)].
-function sceneMessage(p, lines) {
+function sceneMessage(p, lines, st) {
   let raw = lines.join('\n'), name = p[4] || '';
   if (typeof locText === 'function') raw = locText(raw);   // plugin text keys first: the text may name the speaker
   const tag = raw.match(/\\n[cr]?<([^>]*)>/i);
@@ -470,8 +488,8 @@ function sceneMessage(p, lines) {
   return {
     face: p[0] || '', faceIndex: p[1] || 0,
     background: p[2] || 0, position: p[3] == null ? 2 : p[3],
-    name: sceneText(name).trim(),
-    text: sceneText(raw).replace(/^\s*\n/, ''),
+    name: sceneText(name, st).trim(),
+    text: sceneText(raw, st).replace(/^\s*\n/, ''),
   };
 }
 
@@ -524,7 +542,7 @@ function sceneNext(st, getCommon, plain) {
   // Show Choices (102): [choices, cancelType, defaultType, …]. The richest branch is
   // taken until the viewer picks another one (sceneChoose).
   const choicesOf = cmd => {
-    const p = cmd.parameters || [], items = (p[0] || []).map(t => sceneText(t));
+    const p = cmd.parameters || [], items = (p[0] || []).map(t => sceneText(t, st));
     const def = p[2] >= 0 && p[2] < items.length ? p[2] : 0;
     const chosen = plain || items.length < 2 ? def : sceneBestChoice(st, cmd.indent || 0, items.length, def, getCommon);
     const top = st.frames[st.frames.length - 1];
@@ -542,7 +560,7 @@ function sceneNext(st, getCommon, plain) {
       case 101: {
         const lines = [];
         while (f.i < f.list.length && f.list[f.i].code === 401) lines.push(String(f.list[f.i++].parameters[0] ?? ''));
-        const msg = sceneMessage(p, lines);
+        const msg = sceneMessage(p, lines, st);
         let choices = null;
         if (f.i < f.list.length && f.list[f.i].code === 102) choices = choicesOf(f.list[f.i++]);
         return step(msg, choices);
@@ -550,7 +568,7 @@ function sceneNext(st, getCommon, plain) {
       case 105: {   // Scrolling text
         const lines = [];
         while (f.i < f.list.length && f.list[f.i].code === 405) lines.push(String(f.list[f.i++].parameters[0] ?? ''));
-        return step({ face: '', faceIndex: 0, background: 1, position: 1, name: '', text: sceneText(lines.join('\n')), scroll: true }, null);
+        return step({ face: '', faceIndex: 0, background: 1, position: 1, name: '', text: sceneText(lines.join('\n'), st), scroll: true }, null);
       }
       case 102: return step(null, choicesOf(cmd));
       case 402: if (f.branch[ind] !== p[0]) sceneSkipBranch(f, ind); break;

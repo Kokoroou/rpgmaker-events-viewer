@@ -261,3 +261,26 @@ test('HTML-like tags in messages: <br> breaks the line, other tags are dropped',
   assert.equal(steps[0].msg.text, 'Hi\nthere');
   assert.equal(steps[0].msg.name, 'Mia');
 });
+
+test('backslash-hash is dropped like other unknown text codes', () => {
+  const { timeline } = setup();
+  const steps = timeline([...say([String.raw`\#Hello \C[2]there\#`])]);
+  assert.equal(steps[0].msg.text, 'Hello there');
+});
+
+test('variable text code shows the scene value, a script-read actor name, or falls back', () => {
+  const { run, timeline } = setup();
+  run(`S.variables = ['', '', 'Hero name']; S.actorStart = { 1: { name: 'Harold', classId: 1, equips: [] } }`);
+  const head = String.raw`\C[2][\V[1]]\C[0] \V[2] \V[3]`;
+  const steps = timeline([
+    c(122, 0, [1, 1, 0, 4, '$game_actors[1].name']),
+    ...say([head]),
+    c(320, 0, [1, 'Rena']),
+    c(122, 0, [1, 1, 0, 4, '$gameActors.actor(1).name()']),
+    c(122, 0, [3, 3, 0, 0, 7]),
+    ...say([head]),
+    c(122, 0, [1, 1, 0, 4, 'something.unreadable()']),
+    ...say([String.raw`\V[1]`]),
+  ]);
+  assert.deepEqual(lines(steps), ['[Harold] Hero name ?', '[Rena] Hero name 7', '?']);
+});
