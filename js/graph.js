@@ -31,7 +31,7 @@ function loadGraphLibs() {
     const s = document.createElement('script');
     s.src = GRAPH_LIBS[i];
     s.onload = () => next(i + 1);
-    s.onerror = () => { graphLibs = 0; hideLayoutNotice(); setStatus('err', 'Could not load the graph library (' + GRAPH_LIBS[i] + ').'); };
+    s.onerror = () => { graphLibs = 0; hideLayoutNotice(); setStatus('err', 'Could not load the graph library (' + GRAPH_LIBS[i] + ').'); if (typeof Preboot !== 'undefined') Preboot.scriptFailed(); };
     document.head.appendChild(s);
   };
   next(0);

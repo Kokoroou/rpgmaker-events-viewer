@@ -106,6 +106,19 @@ var Preboot = (function () {
     P.flushLink = function () { if (waiting) runLink(); };
   }
 
+  // A <script> that fails to load (network, blocked) would leave the page half dead without a word.
+  P.scriptFailed = function () {
+    if (document.getElementById('load-error')) return;
+    var n = document.createElement('div');
+    n.id = 'load-error'; n.className = 'load-error'; n.setAttribute('role', 'alert');
+    n.textContent = 'A part of the page failed to load. Reload the page.';
+    (document.body || document.documentElement).appendChild(n);
+  };
+  window.addEventListener('error', function (e) {   // resource errors do not bubble: capture
+    var t = e && e.target;
+    if (t && t.tagName === 'SCRIPT') P.scriptFailed();
+  }, true);
+
   // app.js: from now on its own handlers run; hand over anything picked meanwhile.
   P.attach = function (handlers) {
     P.handlers = handlers;
