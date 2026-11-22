@@ -71,6 +71,15 @@ function stageFromPicture(stage, w, h) {
   return { width: w, height: h };
 }
 
+// Olivia_AnimatedPictures: a picture named "Name[CxR]" is a sprite sheet of C columns
+// and R rows, of which the game shows one frame at a time. → {cols, rows}, or null.
+function pictureFrames(name) {
+  const m = /\[(\d+)x(\d+)\]/i.exec(String(name || ''));
+  if (!m) return null;
+  const cols = +m[1], rows = +m[2];
+  return cols >= 1 && rows >= 1 && cols * rows > 1 ? { cols, rows } : null;
+}
+
 /* Game roots. Both answer list(dir) → Map(lower-case name → entry) and file(entry) → File.
    - tree: a folder handle / drag & drop entry, listed with loader.js's FS_HANDLE / FS_ENTRY;
    - files: the File list of <input webkitdirectory> (every file is already in hand). */

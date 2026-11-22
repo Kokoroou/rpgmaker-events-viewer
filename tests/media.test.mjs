@@ -65,6 +65,18 @@ test('stageFromPicture grows a guessed screen only to a screen-shaped picture', 
   assert.equal(f(null, 1024, 768), null);
 });
 
+test('pictureFrames reads a sprite sheet\'s [CxR] from the picture name', () => {
+  const { run } = setup([]);
+  const f = name => { const r = run('pictureFrames')(name); return r && { ...r }; };
+  assert.deepEqual(f('Hero_walk[2x4]'), { cols: 2, rows: 4 });
+  assert.deepEqual(f('sub/Flame[6X1]_b'), { cols: 6, rows: 1 }, 'case and text around it');
+  assert.equal(f('Plain'), null);
+  assert.equal(f('One[1x1]'), null, 'a single frame is the whole picture');
+  assert.equal(f('Zero[0x4]'), null);
+  assert.equal(f('Note[2]'), null);
+  assert.equal(f(''), null);
+});
+
 test('Media.screen marks MV\'s default size as a guess', async () => {
   const { run, files } = setup([['Game/www/data/Map001.json', new ArrayBuffer(2)]]);
   run('globalThis').__files = files;

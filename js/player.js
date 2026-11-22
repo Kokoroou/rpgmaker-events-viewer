@@ -327,7 +327,7 @@ const Player = {
         img.className = 'pl-pic';
         img.alt = '';
         img.draggable = false;
-        img.addEventListener('load', () => this.grow(img));
+        img.addEventListener('load', () => { this.frame(img); this.grow(img); });
         this.imgs.set(id, img);
       }
       this.el.pics.appendChild(img);   // keeps picture-number order
@@ -352,12 +352,24 @@ const Player = {
     }
   },
 
+  // A sprite sheet ("Name[CxR]", pictureFrames) shows its first frame: the <img> is one
+  // frame big and the sheet sits at its top-left corner (object-fit: none), so position,
+  // origin and zoom work on the frame like in the game.
+  frame(img) {
+    const f = pictureFrames(img.dataset.name);
+    const one = f && img.naturalWidth;
+    img.style.width = one ? Math.floor(img.naturalWidth / f.cols) + 'px' : '';
+    img.style.height = one ? Math.floor(img.naturalHeight / f.rows) + 'px' : '';
+    img.style.objectFit = one ? 'none' : '';
+    img.style.objectPosition = one ? '0 0' : '';
+  },
+
   // A full-screen picture at the top-left corner bigger than MV's default size, when
   // that is only a guess: the game runs at that size (a resolution plugin we could not
   // read). It happens at most once per game (Media.grown); otherwise the stage keeps
   // the game's screen and clips bigger pictures, like the game.
   grow(img) {
-    if (!this.screen || !img.complete || !img.naturalWidth) return;
+    if (!this.screen || !img.complete || !img.naturalWidth || pictureFrames(img.dataset.name)) return;
     if (img.dataset.origin !== '0' || img.style.left !== '0px' || img.style.top !== '0px') return;
     const s = stageFromPicture(this.screen, img.naturalWidth, img.naturalHeight);
     if (!s) return;
