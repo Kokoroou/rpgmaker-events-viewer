@@ -183,6 +183,19 @@ test('maps without any event report an error', async () => {
   assert.deepEqual(calls.selected, []);
 });
 
+test('a nested mods/x/data/ listed first does not replace the root data/', async () => {
+  const { get } = setup();
+  const mod = [
+    file('G/mods/x/data/Map001.json', { events: [null, { id: 1, name: 'Modded', x: 0, y: 0, pages: [{ list: [] }] }] }),
+    file('G/mods/x/data/Map002.json', { events: [null] }),
+  ];
+  await get('loadFolder')([...mod, ...game('G/')]);
+  await get('S.bgDone');
+  const S = get('S');
+  assert.equal(S.maps.get(1).events[0].name, 'Guard');
+  assert.deepEqual(plain([...S.maps.keys()].sort()), [1, 2]);
+});
+
 test('findFile matches names case-insensitively, under the data prefix or any folder', () => {
   const { get } = setup();
   const findFile = get('findFile');
