@@ -39,6 +39,7 @@ const Player = {
   hideMsg: false,           // H: the dialogue is hidden to see the pictures
   vol: 0.8, muted: false,
   W: SCREEN_MV.width, H: SCREEN_MV.height,
+  screen: null,             // the game's screen size once Media.screen is in ({width, height, guess?})
   imgs: new Map(),          // picture id → <img>
   loops: { bgm: null, bgs: null },   // { name, audio, token }
   oneShots: new Set(),               // SE / ME playing now (each tagged with its kind)
@@ -115,9 +116,17 @@ const Player = {
       document.body.classList.add('pl-open');
       this.lastFocus = document.activeElement;
       this.setHideMsg(false);
-      this.grown = false;
-      this.setStage(SCREEN_MV.width, SCREEN_MV.height);
-      if (Media.screen) Media.screen.then(s => { if (!this.el.root.hidden && !this.grown) this.setStage(s.width, s.height); });
+      // The stage waits for the screen size before a picture may change it (grow), so a
+      // picture that loads first is never measured against MV's default by mistake.
+      this.screen = null;
+      const start = Media.grown || SCREEN_MV;
+      this.setStage(start.width, start.height);
+      if (Media.screen) Media.screen.then(s => {
+        if (this.el.root.hidden) return;
+        this.screen = s.guess && Media.grown ? Media.grown : s;
+        this.setStage(this.screen.width, this.screen.height);
+        for (const img of this.imgs.values()) this.grow(img);
+      });
     }
     this.el.root.focus();
     this.note();
@@ -343,12 +352,17 @@ const Player = {
     }
   },
 
-  // A full-screen picture at the top-left corner bigger than the screen size we know:
-  // the game runs at that size (a resolution plugin we could not read).
+  // A full-screen picture at the top-left corner bigger than MV's default size, when
+  // that is only a guess: the game runs at that size (a resolution plugin we could not
+  // read). It happens at most once per game (Media.grown); otherwise the stage keeps
+  // the game's screen and clips bigger pictures, like the game.
   grow(img) {
+    if (!this.screen || !img.complete || !img.naturalWidth) return;
     if (img.dataset.origin !== '0' || img.style.left !== '0px' || img.style.top !== '0px') return;
-    const w = img.naturalWidth, h = img.naturalHeight;
-    if (w > this.W && h >= this.H * 0.9 && w <= 4096) { this.grown = true; this.setStage(w, h); }
+    const s = stageFromPicture(this.screen, img.naturalWidth, img.naturalHeight);
+    if (!s) return;
+    Media.grown = this.screen = s;
+    this.setStage(s.width, s.height);
   },
 
   // type: the message types itself out (moving forward).
