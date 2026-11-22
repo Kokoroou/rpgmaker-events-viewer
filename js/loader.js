@@ -127,11 +127,19 @@ async function loadFiles(files, id, guard, name) {
     fileMap.set(rel, f);
   }
 
+  // Several data/ folders can be listed (mods/x/data/ next to the real one): prefer the shallowest
+  // one that holds map files; with none holding maps, the first one listed.
   let dataPrefix = '';
+  const withMaps = new Map();   // prefix → path segments
   for (const [path] of fileMap) {
     const m = path.match(/^(.+\/)?data\//i);
-    if (m) { dataPrefix = m[0]; break; }
+    if (!m) continue;
+    if (!dataPrefix) dataPrefix = m[0];
+    const rest = path.slice(m[0].length);
+    if (!withMaps.has(m[0]) && rest.indexOf('/') < 0 && MAP_FILE.test(rest)) withMaps.set(m[0], m[0].split('/').length);
   }
+  let best = Infinity;
+  for (const [pre, depth] of withMaps) if (depth < best) { best = depth; dataPrefix = pre; }
 
   const mapFiles = new Map();   // mapId → file, in id order
   let ext = 'json';             // one engine per game: the map files' extension (json for MV/MZ)
