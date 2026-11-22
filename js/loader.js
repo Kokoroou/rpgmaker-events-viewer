@@ -230,6 +230,16 @@ async function loadFiles(files, id, guard, name) {
     if (engine) root = rgssMediaRoot(root);   // Graphics/ where MV has img/
     if (lcf) root = lcfMediaRoot(root);       // Picture/, FaceSet/, Music/, Sound/
     Media.reset(root, system);
+    // Plugin text keys (\REM_MAP[…]) → the game's loc/ files (loc.js); the page on screen
+    // is drawn again once they are in.
+    S.loc = null;
+    if (typeof locLoad === 'function') {
+      locLoad(root).then(loc => {
+        if (!loc || id !== current) return;
+        S.loc = loc;
+        if (typeof redrawPage === 'function') redrawPage();
+      });
+    }
   }
   S.remoteLink = files.remoteLink || null;   // only a game link keeps one
   S.folderHandle = files.folderHandle || null;   // a folder behind a directory handle keeps it

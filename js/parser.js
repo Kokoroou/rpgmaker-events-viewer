@@ -19,6 +19,7 @@ function describeCondition(params) {
 }
 
 function resolveTextCodes(str) {
+  if (typeof locText === 'function') str = locText(str);   // plugin text keys (loc.js)
   if (!str || typeof S === 'undefined') return str ? textTags(str) : '';
   return textTags(str)
     .replace(/\\[Nn]\[(\d+)\]/g, (_, n) => S.actors[+n] || `\\N[${n}]`)

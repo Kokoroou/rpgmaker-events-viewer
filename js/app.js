@@ -167,6 +167,13 @@ function selectPage(pi) {
   clearDetail();
 }
 
+// The graph on screen, drawn again (the game's text keys were read: loader.js → loc.js).
+function redrawPage() {
+  if (!S.currentPage || !EL.eventPicker.classList.contains('hidden')) return;
+  if (S.selectedMapId === 'common') selectCommonEvent(S.selectedEvId);
+  else selectPage(S.selectedPage);
+}
+
 /* ── Scene preview (player.js) ───────────────────────── */
 // The toolbar's Preview button plays the page / common event on screen, when it shows
 // at least a picture or a message.

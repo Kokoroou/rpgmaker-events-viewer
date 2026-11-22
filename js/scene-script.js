@@ -450,7 +450,7 @@ function scenePlace(p, st) {
 // lifted out, HTML-like tags handled by textTags() (<br> = new line), every other
 // control code (\C[2], \I[5], \., \| …) dropped.
 function sceneText(str) {
-  return textTags(str)
+  return textTags(typeof locText === 'function' ? locText(str) : str)
     .replace(/\\\\/g, '\u0000')
     .replace(/\\[Nn]\[(\d+)\]/g, (_, n) => (typeof S !== 'undefined' && S.actors[+n]) || '')
     .replace(/\\[Vv]\[(\d+)\]/g, '?')
@@ -464,6 +464,7 @@ function sceneText(str) {
 // Show Text (101): [faceName, faceIndex, background, position, speakerName (MZ)].
 function sceneMessage(p, lines) {
   let raw = lines.join('\n'), name = p[4] || '';
+  if (typeof locText === 'function') raw = locText(raw);   // plugin text keys first: the text may name the speaker
   const tag = raw.match(/\\n[cr]?<([^>]*)>/i);
   if (tag) { if (!name) name = tag[1]; raw = raw.replace(tag[0], '').replace(/^[ 	]+/, ''); }
   return {
