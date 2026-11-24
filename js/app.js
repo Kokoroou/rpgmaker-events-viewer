@@ -229,8 +229,8 @@ function init() {
     const html = document.documentElement;
     const next = currentTheme() === 'dark' ? 'light' : 'dark';
     try {
-      if (next === systemTheme()) { delete html.dataset.theme; localStorage.removeItem('mle-theme'); }
-      else                        { html.dataset.theme = next; localStorage.setItem('mle-theme', next); }
+      if (next === systemTheme()) { delete html.dataset.theme; localStorage.removeItem('theme'); localStorage.removeItem('mle-theme'); }
+      else                        { html.dataset.theme = next; localStorage.setItem('theme', next); localStorage.removeItem('mle-theme'); }
     } catch (e) { html.dataset.theme = next; }
     syncThemeLabel();
     if (cy) cy.style(cyStyle());
