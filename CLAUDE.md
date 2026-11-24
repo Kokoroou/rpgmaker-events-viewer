@@ -150,6 +150,10 @@ The tool never edits or exports game files. In-place dialogue editing and the ma
 
 `js/lens-gate.js` (sync in `<head>` of `index.html` and `faq.html`, before the CSS) sets `data-lens` on `<html>` everywhere except `kokoroou.github.io`; every rule of the new look sits under `:root[data-lens]` (`scripts/check-site.mjs` checks the gate, one `<h1>` per page, and that the file loads first). `js/lens-gate.js` and `css/lens.css` are **verbatim copies** from `rpgmaker-assets-viewer` (like `tokens.css`: edit them there, copy here; compare with `cmp`). `css/lens-events.css` is Events' own part: node colours (`--c-*`, read by `graph.js` when the gate is set), sidebar/search, toolbar, page tabs, picker, inspector, player, phone sizes, and `body.static` (faq.html header, boxed questions, how-to, footer; `js/faq.js` is its theme button). Rules: text >= 12px, touch targets 44px on phones with 8px between, extra markup uses `lens-only` / `lens-sr`. On phones `fitGraph()` never zooms below `READ_MIN_ZOOM` (`graphZoom()` in constants.js, tested): the page pans instead of shrinking.
 
+## FAQ header and footer
+
+`faq.html` uses the family's header and footer (the same as the MakerLens home, Privacy and Legal pages): `.top` / `.foot`, styled by `css/family-chrome.css`, a verbatim copy of Assets' file (edit it there; it mirrors `Kokoroou/makerlens` `site/css/landing.css`). No Assets | Events switch there; the theme button is `#theme-toggle` (`js/faq.js`).
+
 ## Conventions
 
 - **Brand: MakerLens Events.** Same family as MakerLens Assets (https://makerlens.kokoroou.workers.dev/assets/): the magnifier mark, the green `--a` action colour and the "Maker**Lens** + suffix" wordmark. Do not reintroduce the LoreInsight name in the UI.
