@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Privacy – what the site sends
+    url: https://makerlens.kokoroou.workers.dev/assets/privacy.html
+    about: MakerLens reads your game files only in your browser.
+  - name: FAQ – folders, scenes, saves
+    url: https://makerlens.kokoroou.workers.dev/events/faq.html
+    about: Answers to the most common questions.

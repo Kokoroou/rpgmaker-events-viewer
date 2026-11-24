@@ -159,3 +159,7 @@ The tool never edits or exports game files. In-place dialogue editing and the ma
 - RPG Maker MV and MZ differ in where the speaker name lives: MZ puts it in `cmd.parameters[4]`; MV doesn't have it inline. The parser handles this with `|| ''`.
 
 - **Page titles** follow the family format `{Topic} — {Qualifier} | MakerLens` (about 60 chars, `og:title`/`twitter:title` identical): see the Page titles section of `Kokoroou/makerlens` CLAUDE.md.
+
+## Releases
+
+`.github/workflows/release.yml` (release-please, via agent-toolkit's shared `release.yml@v0`, same as rpgmaker-web-toolkit) keeps a `chore(main): release X.Y.Z` PR up to date from the Conventional Commits on `main` (`feat:` → minor, `fix:` → patch, `feat!:` → major; `docs:` `ci:` `chore:` `refactor:` `test:` alone make no release). Merging it tags `vX.Y.Z` and creates the GitHub Release; nothing is attached (the site is deployed by makerlens' `deploy.yml`). The first release is `v1.0.0` (`initial-version`). So squash-merge PRs with a Conventional Commit title, and never edit `CHANGELOG.md` or `version.txt` by hand.
