@@ -32,13 +32,6 @@
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "@id": "https://makerlens.kokoroou.workers.dev/events/faq.html#faq",
-  "isPartOf": {
-    "@id": "https://makerlens.kokoroou.workers.dev/#website"
-  },
-  "about": {
-    "@id": "https://makerlens.kokoroou.workers.dev/events/#app"
-  },
   "mainEntity": [
     {
       "@type": "Question",
@@ -70,6 +63,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003. MV and MZ keep events in plain JSON; VX Ace, VX and XP keep them in Ruby files (.rvdata2, .rvdata, .rxdata), usually packed in Game.rgss3a, .rgss2a or .rgssad: open the game folder and they are read from the archive in your browser. RPG Maker 2000 / 2003 keep them in RPG_RT.ldb, RPG_RT.lmt and Map####.lmu in the game folder itself; their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from Picture/ and sound from Music/ and Sound/. For the images and audio of every version, use MakerLens Assets."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I open a game from an archive or a link?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. View another way on the start screen offers an archive (Game.rgss3a, .rgss2a or .rgssad picked on its own), a game link and data files picked one by one. A game link comes from the game itself (⚙ → Share → MakerLens link). Its token sits after the #, so no server receives it, and only https://*.workers.dev addresses are accepted."
       }
     },
     {
@@ -166,6 +167,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "MakerLens Events only reads files that are already on your computer and changes nothing. It is meant for your own games, or games you have permission to study, for example to write a guide or a translation. Reusing a game's story or text elsewhere may need the rights holder's permission, so check the game's terms."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I move to MakerLens Assets without picking the folder again?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. In Chrome or Edge, once a game folder or game link is open, the Assets | Events switch in the header opens the same game in MakerLens Assets. The folder stays on your device and is handed over inside the browser. Firefox, Safari and files picked one by one cannot hand a folder over."
       }
     },
     {
@@ -279,6 +288,10 @@
       <p>RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003. MV and MZ keep events in plain JSON; VX Ace, VX and XP keep them in Ruby files (<code>.rvdata2</code>, <code>.rvdata</code>, <code>.rxdata</code>), usually packed in <code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code>: open the game folder and they are read from the archive in your browser. RPG Maker 2000 / 2003 keep them in <code>RPG_RT.ldb</code>, <code>RPG_RT.lmt</code> and <code>Map####.lmu</code> in the game folder itself; their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from <code>Picture/</code> and sound from <code>Music/</code> and <code>Sound/</code>. For the images and audio of every version, use <a href="../assets/">MakerLens Assets</a>.</p>
     </details>
     <details>
+      <summary><h3>Can I open a game from an archive or a link?</h3></summary>
+      <p>Yes. <strong>View another way</strong> on the start screen offers an <strong>archive</strong> (<code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code> picked on its own), a <strong>game link</strong> and <strong>data files</strong> picked one by one. A game link comes from the game itself (⚙ → Share → MakerLens link). Its token sits after the <code>#</code>, so no server receives it, and only <code>https://*.workers.dev</code> addresses are accepted.</p>
+    </details>
+    <details>
       <summary><h3>Why does it say “No RPG Maker game data found”?</h3></summary>
       <p>It found no <code>data/</code> folder and no <code>Map###.json</code> file in what you selected. Select the game's root folder (the one with <code>Game.exe</code>) or its <code>data/</code> folder, not <code>img/</code> or <code>audio/</code>. Some released games pack all their files into the <code>.exe</code> or encrypt <code>data/</code> with a plugin; MakerLens Events cannot read those.</p>
     </details>
@@ -331,6 +344,10 @@
     <details>
       <summary><h3>Is it legal to look at a game's events?</h3></summary>
       <p>MakerLens Events only reads files that are already on your computer and changes nothing. It is meant for your own games, or games you have permission to study, for example to write a guide or a translation. Reusing a game's story or text elsewhere may need the rights holder's permission, so check the game's terms.</p>
+    </details>
+    <details>
+      <summary><h3>Can I move to MakerLens Assets without picking the folder again?</h3></summary>
+      <p>Yes. In Chrome or Edge, once a game folder or game link is open, the <strong>Assets | Events</strong> switch in the header opens the same game in <a href="../assets/">MakerLens Assets</a>. The folder stays on your device and is handed over inside the browser. Firefox, Safari and files picked one by one cannot hand a folder over.</p>
     </details>
     <details>
       <summary><h3>How do I get a game's images and music?</h3></summary>
