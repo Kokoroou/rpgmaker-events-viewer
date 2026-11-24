@@ -32,13 +32,6 @@
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  "@id": "https://makerlens.kokoroou.workers.dev/events/faq.html#faq",
-  "isPartOf": {
-    "@id": "https://makerlens.kokoroou.workers.dev/#website"
-  },
-  "about": {
-    "@id": "https://makerlens.kokoroou.workers.dev/events/#app"
-  },
   "mainEntity": [
     {
       "@type": "Question",
@@ -70,6 +63,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003. MV and MZ keep events in plain JSON; VX Ace, VX and XP keep them in Ruby files (.rvdata2, .rvdata, .rxdata), usually packed in Game.rgss3a, .rgss2a or .rgssad: open the game folder and they are read from the archive in your browser. RPG Maker 2000 / 2003 keep them in RPG_RT.ldb, RPG_RT.lmt and Map####.lmu in the game folder itself; their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from Picture/ and sound from Music/ and Sound/. For the images and audio of every version, use MakerLens Assets."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I open a game from an archive or a link?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. View another way on the start screen offers an archive (Game.rgss3a, .rgss2a or .rgssad picked on its own), a game link and data files picked one by one. A game link comes from the game itself (⚙ → Share → MakerLens link). Its token sits after the #, so no server receives it, and only https://*.workers.dev addresses are accepted."
       }
     },
     {
@@ -170,6 +171,14 @@
     },
     {
       "@type": "Question",
+      "name": "Can I move to MakerLens Assets without picking the folder again?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. In Chrome or Edge, once a game folder or game link is open, the Assets | Events switch in the header opens the same game in MakerLens Assets. The folder stays on your device and is handed over inside the browser. Firefox, Safari and files picked one by one cannot hand a folder over."
+      }
+    },
+    {
+      "@type": "Question",
       "name": "How do I get a game's images and music?",
       "acceptedAnswer": {
         "@type": "Answer",
@@ -213,6 +222,7 @@
 <link rel="stylesheet" href="css/switch.css">
 <link rel="stylesheet" href="css/lens.css">
 <link rel="stylesheet" href="css/lens-events.css">
+<link rel="stylesheet" href="css/family-chrome.css">
 <script src="js/theme-init.js"></script>
 <script src="js/faq.js" defer></script>
 </head>
@@ -226,24 +236,11 @@
 </svg>
 
 <!-- New look only (hidden without js/lens-gate.js): header, how-to and footer -->
-<header id="header" class="lens-only">
-  <a id="logo" href="../" title="MakerLens home" aria-label="MakerLens Events, go to the MakerLens home page">
-    <span class="logo-mark"><svg class="lens-only" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect class="lp" x="7" y="7" width="2" height="2"/><rect class="lp" x="9" y="9" width="2" height="2"/><rect class="lp" x="11" y="7" width="2" height="2"/></svg></span>
-    <span class="logo-full">Maker<span>Lens</span><em class="logo-sub">Events</em></span>
-    <span class="logo-abbr">M<span>L</span><em class="logo-sub">Events</em></span>
-  </a>
-  <div id="header-right">
-    <div class="tool-switch" role="group" aria-label="MakerLens tools">
-      <a class="ts-seg" href="../assets/" title="MakerLens Assets" aria-label="MakerLens Assets"><svg width="16" height="16" aria-hidden="true"><use href="#i-grid"/></svg><span>Assets</span></a>
-      <a class="ts-seg" href="./" aria-current="page"><svg width="16" height="16" aria-hidden="true"><use href="#i-flow"/></svg><span>Events</span></a>
-    </div>
-    <button class="btn-icon" id="theme-toggle" type="button" title="Toggle theme" aria-label="Toggle theme">
-      <svg class="icon-sun" width="20" height="20" aria-hidden="true"><use href="#i-sun"/></svg>
-      <svg class="icon-moon" width="20" height="20" aria-hidden="true"><use href="#i-moon"/></svg>
-    </button>
-    <a class="btn-primary" id="open-btn" href="./" aria-label="Open MakerLens Events"><svg width="18" height="18" aria-hidden="true"><use href="#i-folder"/></svg><span class="btn-label">Open Events</span></a>
-  </div>
-</header>
+<header class="top lens-only"><div class="wrap bar">
+  <a class="brand" href="https://makerlens.kokoroou.workers.dev/" translate="no" aria-label="MakerLens home"><svg class="mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect class="lp" x="7" y="7" width="2" height="2"/><rect class="lp" x="9" y="9" width="2" height="2"/><rect class="lp" x="11" y="7" width="2" height="2"/></svg><span>Maker<b>Lens</b></span></a>
+  <nav aria-label="Main"><a href="https://makerlens.kokoroou.workers.dev/assets/">Assets</a><a href="./" aria-current="page">Events</a><a href="https://makerlens.kokoroou.workers.dev/privacy.html">Privacy</a><a href="https://makerlens.kokoroou.workers.dev/legal.html">Legal</a></nav>
+  <button class="theme-btn" type="button" id="theme-toggle" aria-label="Switch theme" title="Switch theme"><svg class="i-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg><svg class="i-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></button>
+</div></header>
 <main>
   <a class="back" href="./">← Back to MakerLens Events</a>
   <h1>RPG Maker event viewer FAQ</h1>
@@ -277,6 +274,10 @@
     <details>
       <summary><h3>Which RPG Maker versions are supported?</h3></summary>
       <p>RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003. MV and MZ keep events in plain JSON; VX Ace, VX and XP keep them in Ruby files (<code>.rvdata2</code>, <code>.rvdata</code>, <code>.rxdata</code>), usually packed in <code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code>: open the game folder and they are read from the archive in your browser. RPG Maker 2000 / 2003 keep them in <code>RPG_RT.ldb</code>, <code>RPG_RT.lmt</code> and <code>Map####.lmu</code> in the game folder itself; their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from <code>Picture/</code> and sound from <code>Music/</code> and <code>Sound/</code>. For the images and audio of every version, use <a href="../assets/">MakerLens Assets</a>.</p>
+    </details>
+    <details>
+      <summary><h3>Can I open a game from an archive or a link?</h3></summary>
+      <p>Yes. <strong>View another way</strong> on the start screen offers an <strong>archive</strong> (<code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code> picked on its own), a <strong>game link</strong> and <strong>data files</strong> picked one by one. A game link comes from the game itself (⚙ → Share → MakerLens link). Its token sits after the <code>#</code>, so no server receives it, and only <code>https://*.workers.dev</code> addresses are accepted.</p>
     </details>
     <details>
       <summary><h3>Why does it say “No RPG Maker game data found”?</h3></summary>
@@ -333,6 +334,10 @@
       <p>MakerLens Events only reads files that are already on your computer and changes nothing. It is meant for your own games, or games you have permission to study, for example to write a guide or a translation. Reusing a game's story or text elsewhere may need the rights holder's permission, so check the game's terms.</p>
     </details>
     <details>
+      <summary><h3>Can I move to MakerLens Assets without picking the folder again?</h3></summary>
+      <p>Yes. In Chrome or Edge, once a game folder or game link is open, the <strong>Assets | Events</strong> switch in the header opens the same game in <a href="../assets/">MakerLens Assets</a>. The folder stays on your device and is handed over inside the browser. Firefox, Safari and files picked one by one cannot hand a folder over.</p>
+    </details>
+    <details>
       <summary><h3>How do I get a game's images and music?</h3></summary>
       <p>Use <a href="../assets/">MakerLens Assets</a>, the other MakerLens tool. It opens the same game folder and previews and downloads its encrypted images and audio (<code>.rpgmvp</code>, <code>.png_</code>, <code>.ogg_</code> and more), also in your browser.</p>
     </details>
@@ -342,17 +347,12 @@
   <p class="more">More from MakerLens: <a href="../assets/">extract a game's images and audio</a> · <a href="../assets/faq.html">MakerLens Assets FAQ</a> · <a href="../">all tools</a></p>
 </main>
 
-<footer class="site-foot lens-only">
-  <div class="foot-wrap">
-    <div class="foot-brand">
-      <a class="foot-logo" href="../" translate="no"><svg class="lens-only" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect class="lp" x="7" y="7" width="2" height="2"/><rect class="lp" x="9" y="9" width="2" height="2"/><rect class="lp" x="11" y="7" width="2" height="2"/></svg><span>Maker<b>Lens</b></span></a>
-      <p>Free tools to look inside RPG Maker games, right in your browser. A personal open-source project by Trương&nbsp;Tuấn&nbsp;Anh. Files never leave your device.</p>
-    </div>
-    <nav aria-label="Tools"><h2>Tools</h2><ul><li><a href="../assets/">MakerLens Assets</a></li><li><a href="./">MakerLens Events</a></li></ul></nav>
-    <nav aria-label="About"><h2>About</h2><ul><li><a href="https://makerlens.kokoroou.workers.dev/privacy.html">Privacy</a></li><li><a href="https://makerlens.kokoroou.workers.dev/legal.html">Legal</a></li><li><a href="faq.html" aria-current="page">FAQ</a></li><li><a href="https://github.com/Kokoroou/rpgmaker-events-viewer">Source on GitHub</a></li></ul></nav>
-    <p class="fine">For games you own or have permission to inspect. RPG&nbsp;Maker is a name of its rights holders; MakerLens is not affiliated with them.</p>
-  </div>
-</footer>
+<footer class="foot lens-only"><div class="wrap">
+  <div class="foot-brand"><a class="brand" href="https://makerlens.kokoroou.workers.dev/" translate="no"><svg class="mark" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15 15l6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><rect class="lp" x="7" y="7" width="2" height="2"/><rect class="lp" x="9" y="9" width="2" height="2"/><rect class="lp" x="11" y="7" width="2" height="2"/></svg><span>Maker<b>Lens</b></span></a>
+  <p>Free tools to look inside RPG Maker games, right in your browser. A personal open-source project by Trương&nbsp;Tuấn&nbsp;Anh. Files never leave your device.</p></div>
+  <nav aria-label="Tools"><h2>Tools</h2><ul><li><a href="https://makerlens.kokoroou.workers.dev/assets/">MakerLens Assets</a></li><li><a href="https://makerlens.kokoroou.workers.dev/events/">MakerLens Events</a></li><li><a href="https://makerlens.kokoroou.workers.dev/assets/faq.html">Assets FAQ</a></li><li><a href="https://makerlens.kokoroou.workers.dev/events/faq.html">Events FAQ</a></li></ul></nav>
+  <nav aria-label="About"><h2>About</h2><ul><li><a href="https://makerlens.kokoroou.workers.dev/privacy.html">Privacy</a></li><li><a href="https://makerlens.kokoroou.workers.dev/legal.html">Legal</a></li><li><a href="https://github.com/Kokoroou/makerlens/discussions" rel="noopener">Community</a></li><li><a href="https://github.com/Kokoroou/makerlens" rel="noopener">GitHub</a></li></ul></nav>
+</div></footer>
 <script src="js/analytics.js"></script>
 </body>
 </html>
