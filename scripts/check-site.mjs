@@ -80,10 +80,17 @@ for (const PAGE of PAGES) {
   for (const m of html.matchAll(/\s(?:src|href)="([^"]*)"/g)) {
     if (!isLocal(m[1])) continue;
     const t = target(m[1]);
-    if (PAGE === APP && t.startsWith('js/')) loaded.add(t.slice(3));
+    if (t.startsWith('js/')) loaded.add(t.slice(3));
     const file = t === '' || t === './' || t.endsWith('/') ? t.replace(/^\.\/$/, '') + 'index.html' : t;
     if (!existsSync(join(root, file))) fail(PAGE, `missing local file ${t}`);
   }
+
+  // 4b. The MakerLens look: js/lens-gate.js is a plain synchronous script before the first stylesheet
+  const gate = html.search(/<script src="js\/lens-gate\.js"><\/script>/);
+  const firstCss = html.search(/<link rel="stylesheet"/);
+  if (gate < 0) fail(PAGE, 'js/lens-gate.js is not loaded (plain <script>, no defer/async)');
+  else if (firstCss >= 0 && gate > firstCss) fail(PAGE, 'js/lens-gate.js must come before the stylesheets');
+  if ((html.match(/<h1[\s>]/g) || []).length !== 1) fail(PAGE, 'a page needs exactly one <h1>');
 
   // 5. JSON-LD parses; a FAQPage matches the visible questions and answers
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
@@ -109,6 +116,30 @@ for (const f of readdirSync(join(root, 'css')).filter(f => f.endsWith('.css'))) 
   const css = readFileSync(join(root, 'css', f), 'utf8');
   for (const m of css.matchAll(/@import\s+(?:url\()?["']?([^"')\s]+)/g)) {
     if (isLocal(m[1]) && !existsSync(join(root, 'css', target(m[1])))) fail(`css/${f}`, `missing import ${m[1]}`);
+  }
+}
+
+// 6. Every rule of the lens layer sits under :root[data-lens] (only .lens-only / .lens-sr helpers may be bare),
+//    so a page without the gate looks exactly as before. css/lens.css is a verbatim copy of MakerLens Assets'.
+function topLevel(css) {
+  const out = []; let depth = 0, start = 0;
+  for (let i = 0; i < css.length; i++) {
+    if (css[i] === '{') { if (depth === 0) out.push({ sel: css.slice(start, i).trim(), at: i }); depth++; }
+    else if (css[i] === '}') { depth--; if (depth === 0) start = i + 1; }
+  }
+  return out;
+}
+for (const f of ['lens.css', 'lens-events.css']) {
+  if (!existsSync(join(root, 'css', f))) { fail(`css/${f}`, 'missing'); continue; }
+  const css = readFileSync(join(root, 'css', f), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const { sel, at } of topLevel(css)) {
+    if (sel.startsWith(':root[data-lens]') || sel === '.lens-only' || sel === '.lens-sr') continue;
+    if (sel.startsWith('@media')) {
+      // the rules inside must be gated too
+      const inner = topLevel(css.slice(at + 1)).slice(0, 1);
+      if (inner.every(r => r.sel.startsWith(':root[data-lens]'))) continue;
+    }
+    fail(`css/${f}`, `rule outside the :root[data-lens] gate: ${sel.slice(0, 60)}`);
   }
 }
 

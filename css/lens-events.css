@@ -1,0 +1,304 @@
+/* ── MakerLens redesign layer: the Events part ────────────
+   Dresses what only MakerLens Events has (graph, inspector, sidebar lists, search, event picker,
+   scene player, Use a save). The shared part (header, buttons, focus, start screen, dialogs,
+   About) is css/lens.css, a verbatim copy of MakerLens Assets' file: edit it there, not here.
+
+   Same gate as lens.css: every rule is under :root[data-lens] (js/lens-gate.js), so without the
+   attribute nothing here applies. css/tokens.css is not touched; the graph's node colours are
+   the --c-* tokens below (js/graph.js reads them when the gate is set).
+
+   Rules this layer keeps: text never under 12px, touch targets 44px on phones with 8px between
+   them, a visible 2px focus ring, 1px lines inside the app. */
+
+/* ── Node colours (graph, inspector badges, legend) ──
+   dialogue = ink, choice = the green action colour (it is a decision), condition = blue,
+   label = teal, jump = slate. Conditions are dashed and jumps dotted on the canvas, so the
+   types differ without colour too. */
+:root[data-lens] {
+  --c-dlg:    #0f172a;
+  --c-choice: #15803d;
+  --c-cond:   #1d4ed8;
+  --c-label:  #0f766e;
+  --c-jump:   #475569;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-lens]:not([data-theme="light"]) {
+    --c-dlg:    #f8fafc;
+    --c-choice: #4ade80;
+    --c-cond:   #60a5fa;
+    --c-label:  #2dd4bf;
+    --c-jump:   #94a3b8;
+  }
+}
+:root[data-lens][data-theme="dark"] {
+  --c-dlg:    #f8fafc;
+  --c-choice: #4ade80;
+  --c-cond:   #60a5fa;
+  --c-label:  #2dd4bf;
+  --c-jump:   #94a3b8;
+}
+
+:root[data-lens] {
+
+  /* ── Header: the reading status ── */
+  #scan-status { font: 13px var(--mono); }
+
+  /* ── Sidebar (Navigator) ── */
+  #sidebar { padding-top: 8px; }
+  #sb-search { padding: 4px 8px 10px; }
+  #sb-search svg { left: 18px; }
+  #sb-search-input {
+    height: 36px; padding: 0 34px 0 34px;
+    font-size: 14px;
+    background: var(--s1); border: 1px solid var(--bd2); border-radius: var(--r);
+  }
+  #sb-search-input:focus { border-color: var(--a); box-shadow: none; outline: 2px solid var(--a); outline-offset: 1px; }
+  /* the "/" key focuses the box: show it (hidden once there is text or focus) */
+  #sb-search::after {
+    content: '/'; position: absolute; right: 16px; top: 50%; margin-top: -3px; transform: translateY(-50%);
+    font: 12px/1 var(--mono); color: var(--t2);
+    border: 1px solid var(--bd2); border-bottom-width: 2px; border-radius: 4px; padding: 2px 6px;
+    background: var(--bg); pointer-events: none;
+  }
+  #sb-search:has(input:focus)::after, #sb-search:has(input:not(:placeholder-shown))::after { display: none; }
+  #sb-search-input::-webkit-search-cancel-button { margin-right: 2px; }
+
+  .sb-section {
+    padding: 14px 8px 6px;
+    font: 700 12px var(--mono); letter-spacing: .02em; text-transform: none; color: var(--t2);
+  }
+  .sb-section:not(:first-child) { border-top: 1px solid var(--bd); }
+  .sb-scenes-title { color: var(--a); }
+  .sb-item, .sb-folder { min-height: 40px; font-size: 14px; border-radius: var(--r); }
+  .sb-folder { font-weight: 600; }
+  .sb-item.active, .sb-folder.active { background: var(--a10); color: var(--t); font-weight: 600; box-shadow: inset 3px 0 0 var(--a-bg); }
+  .sb-item.active .sb-icon, .sb-folder.active .sb-icon { color: var(--a); }
+  .sb-count {
+    padding: 0; border: 0; background: none;
+    font: 12px var(--mono); color: var(--t2);
+  }
+  .sb-item.active .sb-count, .sb-folder.active .sb-count { background: none; color: var(--t2); }
+  .sb-children { margin-left: 12px; padding-left: 6px; border-left: 1px solid var(--bd); }
+  .sb-scenes-more, .sb-search-note { font: 12px var(--mono); }
+  .sb-scenes-more { color: var(--t2); text-decoration: underline; text-underline-offset: 3px; min-height: 36px; }
+  .sb-scenes-more:hover { color: var(--a); }
+  #sb-resizer:hover, #sb-resizer.dragging { background: var(--a-bg); }
+
+  /* ── Graph toolbar ── */
+  #graph-toolbar { border-bottom: 1px solid var(--bd2); }
+  #event-breadcrumb { font-size: 14px; }
+  #event-breadcrumb span { font: 600 13px var(--mono); }
+  .bc-seg { text-underline-offset: 3px; }
+  #page-tabs { gap: 0; flex-wrap: nowrap; border: 1px solid var(--bd2); border-radius: var(--r); background: var(--s1); max-width: 100%; overflow-x: auto; }
+  .page-tab {
+    height: 32px; min-width: 36px; padding: 0 12px;
+    border: 0; border-left: 1px solid var(--bd); border-radius: 0;
+    background: transparent; color: var(--t2);
+    font: 700 12px var(--mono);
+    flex-shrink: 0;
+  }
+  #page-tabs:empty { display: none; }
+  .page-tab:first-child { border-left: 0; }
+  .page-tab:hover { background: var(--s2); color: var(--t); }
+  .page-tab.active { background: var(--t); color: var(--bg); }
+  .page-tab:focus-visible { outline-offset: -2px; }
+  #save-btn.on { border-color: var(--a); color: var(--a); background: var(--a10); }
+  #scene-play { box-shadow: none; }
+
+  /* ── Graph canvas: dotted paper, controls as one framed group ── */
+  #graph-wrap { background: radial-gradient(var(--bd2) 1px, transparent 1.2px) 0 0 / 22px 22px; }
+  #graph-controls { gap: 2px; padding: 3px; border: 1px solid var(--bd2); border-radius: 10px; box-shadow: none; }
+  .layout-notice { font-size: 13px; border-color: var(--bd2); box-shadow: none; }
+
+  /* ── Event picker ── */
+  #event-picker { background: var(--bg) radial-gradient(var(--bd2) 1px, transparent 1.2px) 0 0 / 22px 22px; }
+  .ep-title { font: 700 24px/1.2 var(--serif); letter-spacing: -.01em; }
+  .ep-sub { font-size: 14px; }
+  .ev-card { display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; border: 1px solid var(--bd2); border-radius: var(--r); box-shadow: none; }
+  .ev-card:hover { transform: none; box-shadow: none; border-color: var(--a); }
+  .ev-card-name { font-size: 14px; }
+  .ev-card-meta { font: 12px var(--mono); color: var(--t2); }
+  .ev-card.ev-scene { border-color: var(--a40); box-shadow: inset 3px 0 0 var(--a-bg); }
+  .ev-card-scene { font: 700 12px var(--mono); }
+  .ev-card-play { height: 32px; }
+
+  /* ── Empty states ── */
+  .empty-event-notice-icon { border-radius: 50%; border: 1px solid var(--bd2); }
+  .empty-event-notice-title { font: 700 18px var(--serif); }
+  .empty-event-notice-sub { font-size: 14px; }
+
+  /* ── Inspector ── */
+  #detail-panel { border-left: 1px solid var(--bd2); }
+  #detail-header { border-bottom: 1px solid var(--bd2); }
+  #detail-header-title, .detail-field-label {
+    font: 12px var(--mono); letter-spacing: .02em; text-transform: none; color: var(--t2);
+  }
+  .detail-empty { font-size: 14px; color: var(--t2); }
+  .detail-type-badge { border-radius: 6px; font: 700 12px var(--mono); padding: 3px 10px; }
+  .detail-speaker { font: 700 14px var(--mono); }
+  .detail-line, .detail-choice-item { font-size: 14px; color: var(--t); background: var(--s2); border-color: var(--bd2); }
+  .detail-choice-num { font: 700 12px var(--mono); }
+  .detail-field-value { font-size: 14px; }
+
+  /* ── About: node legend ── */
+  .legend-item { font: 12px var(--mono); border-radius: 6px; }
+  .legend-dot { border-radius: 2px; }
+
+  /* ── Loader / feedback ── */
+  #loader-card { border-radius: 12px; }
+  #loader-title { font-family: var(--serif); font-size: 18px; font-weight: 700; }
+  #loader-name { font-size: 12px; }
+  .loader-step .ls-detail { font-family: var(--mono); font-size: 12px; }
+  .fb-title { font-size: 16px; }
+  .fb-env { font-size: 12px; }
+
+  /* ── Scene player (always dark, like the lightbox of Assets) ── */
+  #player {
+    --pl-accent: #4ade80;
+    background: rgba(2, 6, 23, .985);
+    --pl-win: rgba(2, 6, 23, .86);
+    --pl-win-bd: rgba(248, 250, 252, .75);
+  }
+  .pl-top { min-height: 60px; padding: 0 12px 0 16px; }
+  #pl-title { font: 700 14px var(--mono); }
+  #pl-sub { font: 12px var(--mono); color: #cbd5e1; }
+  #pl-note { font-size: 12px; }
+  .pl-btn {
+    width: 44px; height: 44px;
+    border: 1px solid rgba(248, 250, 252, .28); border-radius: 8px;
+    background: rgba(248, 250, 252, .08);
+  }
+  .pl-btn:hover { background: rgba(248, 250, 252, .18); }
+  .pl-btn:disabled { opacity: .4; background: transparent; }
+  .pl-btn[aria-pressed="true"], #pl-hide[aria-pressed="true"] { border-color: #4ade80; color: #4ade80; }
+  .pl-btn-main { background: #22c55e; border-color: #22c55e; color: #052e16; }
+  .pl-btn-main:hover { background: #4ade80; }
+  .pl-side { width: 48px; height: 48px; border: 1px solid rgba(248, 250, 252, .28); border-radius: 8px; background: rgba(2, 6, 23, .6); }
+  #pl-frame { border-radius: 6px; border: 1px solid rgba(248, 250, 252, .28); box-shadow: none; }
+  #pl-namebox { background: #4ade80; border-color: #4ade80; color: #020617; text-shadow: none; font-weight: 700; border-radius: 8px 8px 0 0; margin-bottom: 0; bottom: calc(100% + 2px); }
+  #pl-count { font: 13px var(--mono); color: #cbd5e1; }
+  #pl-seek, #pl-vol { accent-color: #4ade80; min-height: 32px; }
+  .pl-bar { padding: 8px 16px 16px; }
+  #player :focus-visible { outline-color: #4ade80; }
+
+  /* ══ faq.html (body.static): header, boxed questions, how-to steps, dark footer ══
+     That page loads header/buttons/layout/switch.css for the shared bar and none of the app's
+     layout, so it scrolls like a document. */
+  body.static { display: block; height: auto; overflow: visible; font-family: var(--font); line-height: 1.6; }
+  body.static::before { display: none; }
+  html:has(body.static) { height: auto; overflow: visible; }
+  .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+  body.static *, body.static *::before, body.static *::after { box-sizing: border-box; }
+  body.static #header { position: sticky; top: 0; }
+  body.static #logo .logo-mark { flex-shrink: 0; }
+  a.ts-seg { text-decoration: none; cursor: pointer; }
+  a.ts-seg:hover { background: var(--s2); color: var(--t); }
+  a.ts-seg[aria-current="page"] { cursor: default; }
+  body.static .btn-primary { text-decoration: none; }
+  body.static main { max-width: 760px; padding: 40px var(--lens-pad) 56px; }
+  body.static h1 { font: 700 clamp(30px, 5vw, 42px)/1.1 var(--serif); letter-spacing: -.02em; text-wrap: balance; }
+  body.static .intro { font: 17px/1.55 var(--serif); }
+  body.static .back { min-height: 44px; border-color: var(--bd2); }
+  body.static .group {
+    font: 700 13px var(--mono); letter-spacing: .02em; text-transform: none; color: var(--t2);
+    margin: 40px 0 12px;
+  }
+  body.static .faq { border-top: 0; display: grid; gap: 12px; }
+  body.static details { border: 1px solid var(--bd2); border-radius: var(--r-lg); background: var(--s1); }
+  body.static details[open] { border-color: var(--t3); }
+  body.static summary { min-height: 56px; padding: 12px 16px 12px 20px; border-radius: var(--r-lg); }
+  body.static summary h3 { font: 700 18px/1.35 var(--serif); }
+  body.static summary:hover h3 { color: var(--a); }
+  body.static summary:focus-visible { outline-offset: -2px; }
+  body.static summary::after {
+    content: '+'; display: grid; place-items: center; width: 32px; height: 32px; flex: none;
+    border: 1px solid var(--t); border-radius: 50%;
+    font: 700 18px/1 var(--mono); color: var(--t);
+  }
+  body.static details[open] summary::after { content: '\2212'; transform: none; background: var(--t); color: var(--bg); }
+  body.static details > :not(summary) { margin: 0; padding: 0 20px 18px; }
+  body.static details > p { font-size: 16px; }
+  body.static code { font-size: .86em; }
+  body.static kbd { font: 12px var(--mono); border: 1px solid var(--bd2); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--s1); color: var(--t); }
+  body.static .cta { min-height: 48px; border-radius: var(--r); box-shadow: none; }
+  body.static .more { font-size: 15px; }
+  body.static .more a { display: inline-block; padding: 6px 0; }
+
+  .howto .steps { list-style: none; counter-reset: step; display: grid; gap: 12px; padding: 0; margin: 0; }
+  .howto .steps li {
+    counter-increment: step; position: relative;
+    padding: 16px 20px 16px 64px;
+    border: 1px solid var(--bd2); border-radius: var(--r-lg); background: var(--s1);
+    color: var(--t2); line-height: 1.55;
+  }
+  .howto .steps li::before {
+    content: counter(step); position: absolute; left: 16px; top: 14px;
+    display: grid; place-items: center; width: 32px; height: 32px;
+    border-radius: 50%; border: 1px solid var(--t); background: var(--a10);
+    font: 700 16px/1 var(--serif); color: var(--a);
+  }
+
+  .site-foot { background: #0b1120; color: #f8fafc; border-top: 4px solid #334155; padding: 48px var(--lens-pad) 56px; }
+  .foot-wrap { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 3fr); gap: 32px; align-items: start; }
+  .foot-logo { display: inline-flex; align-items: center; gap: 10px; font: 700 20px var(--serif); letter-spacing: -.02em; color: #f8fafc; text-decoration: none; min-height: 44px; }
+  .foot-logo b { font-style: italic; color: #4ade80; }
+  .foot-logo .lp { fill: #4ade80; }
+  .foot-brand p { margin-top: 8px; font-size: 14px; color: #94a3b8; max-width: 22rem; }
+  .site-foot h2 { font: 700 14px/1 var(--mono); margin: 0 0 12px; color: #f8fafc; }
+  .site-foot ul { list-style: none; display: grid; gap: 4px; padding: 0; }
+  .site-foot li a { display: inline-flex; align-items: center; min-height: 44px; color: #f8fafc; text-decoration: underline; text-decoration-color: #4ade80; text-underline-offset: 3px; font-size: 15px; }
+  .site-foot li a:hover { color: #4ade80; }
+  .site-foot li a[aria-current="page"] { color: #4ade80; }
+  .site-foot a:focus-visible { outline-color: #4ade80; }
+  .site-foot .fine { grid-column: 1 / -1; border-top: 1px solid #1f2a3d; padding-top: 24px; font: 13px/1.5 var(--mono); color: #94a3b8; }
+
+  /* the header's tool switch on the static page: links, so phones keep only the way out as one icon */
+  @media (max-width: 900px) { a.ts-seg { padding: 0 9px; } a.ts-seg span { display: none; } }
+  @media (max-width: 600px) {
+    body.static .tool-switch { padding: 0; border-color: transparent; background: transparent; }
+    body.static a.ts-seg[aria-current="page"] { display: none; }
+    body.static a.ts-seg { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: var(--r); }
+    body.static .back { margin-bottom: 20px; }
+    .foot-wrap { grid-template-columns: 1fr; }
+    .howto .steps li { padding: 14px 16px 14px 60px; }
+  }
+
+  /* ── Phones ── */
+  @media (max-width: 600px) {
+    #sb-search-input { height: 44px; font-size: 16px; }
+    .sb-item, .sb-folder { min-height: 44px; }
+    .sb-scenes-more { min-height: 44px; }
+    #sb-search::after { display: none; }
+
+    #graph-toolbar { gap: 8px; row-gap: 4px; }
+    #event-breadcrumb { order: 3; flex: 1 0 100%; }
+    .bc-seg { display: inline-flex; align-items: center; min-height: 44px; vertical-align: middle; }
+    /* separate 44px chips, 8px apart (no segmented strip: neighbouring touch targets need room) */
+    #page-tabs { order: 4; flex: 1 0 100%; gap: 8px; border: 0; background: none; border-radius: 0; padding: 2px; margin: -2px; }
+    .page-tab { height: 44px; min-width: 44px; border: 1px solid var(--bd2); border-radius: var(--r); }
+    .page-tab.active { border-color: var(--t); }
+    .setup-alt .btn-ghost, .alt-actions .btn-ghost, .alt-actions .btn-primary, #fb-send { min-height: 44px; height: 44px; }
+    .privacy-note a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 6px; }
+    #save-btn, #scene-play { height: 44px; padding: 0 14px; }
+    #save-btn { max-width: 160px; }
+    #graph-controls { gap: 8px; padding: 6px; }
+    #detail-panel { border-top: 1px solid var(--bd2); border-radius: 12px 12px 0 0; }
+    #detail-header { padding-right: 8px; }
+
+    .ev-card-wrap .ev-card { padding-bottom: 66px; }
+    .ev-card-play { height: 44px; padding: 0 14px; }
+    .ep-title { font-size: 22px; }
+
+    #alt-link-input { height: 44px; font-size: 16px; }
+    .fb-close { width: 44px; height: 44px; top: 2px; right: 2px; }
+    .fb-kind { gap: 8px; }
+    .fb-kind label { height: 44px; }
+    .fb-env { height: 44px; }
+    .fb-title { margin-right: 44px; }
+    #loader-cancel { height: 44px; }
+
+    .pl-top { padding: 0 8px 0 12px; }
+    .pl-nav, .pl-extra { gap: 8px; }
+    #pl-seek, #pl-vol { min-height: 44px; }
+  }
+}

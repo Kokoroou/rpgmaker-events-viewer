@@ -55,6 +55,16 @@ function layoutPlan(count) {
   };
 }
 
+// Zoom of a fitted event page (graph.js fitGraph). Desktop: fit, but never past life size. Phones:
+// never under READ_MIN_ZOOM either, so the 13px node text stays at least 12px on screen; a page
+// that does not fit then scrolls (pan / pinch) instead of shrinking.
+const FIT_MAX_ZOOM = 1.2;
+const READ_MIN_ZOOM = 1;
+function graphZoom(fit, phone) {
+  const z = Math.min(fit, FIT_MAX_ZOOM);
+  return phone ? Math.max(z, READ_MIN_ZOOM) : z;
+}
+
 // Some message plugins read HTML-like tags in the text (<br>, <b>, <i>, <font …>,
 // <WordWrap>). <br> becomes a line break, other tags are dropped and the common
 // entities decoded. "<3", "a < b" and a "\n<Name>" speaker tag are left alone.

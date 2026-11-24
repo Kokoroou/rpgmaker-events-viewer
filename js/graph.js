@@ -49,7 +49,16 @@ function graphReady(again) {
 /* ── Cytoscape instance ──────────────────────────────── */
 let cy = null;
 
+// The MakerLens look (html[data-lens], js/lens-gate.js): node colours come from the --c-* tokens
+// that css/lens-events.css sets for both themes, on the card surface of the page.
+const isLens = () => document.documentElement.hasAttribute('data-lens');
+
 function activeNodeColors() {
+  if (isLens()) {
+    const bg = token('--s1'), text = token('--t');
+    const one = name => ({ bg, border: token(name), text });
+    return { dialogue: one('--c-dlg'), choice: one('--c-choice'), condition: one('--c-cond'), label: one('--c-label'), jump: one('--c-jump') };
+  }
   return currentTheme() === 'light' ? NODE_COLORS_LIGHT : NODE_COLORS;
 }
 
@@ -78,6 +87,9 @@ function cyStyle() {
   const font   = token('--font');
   const jump   = token('--c-jump');
   const accent = token('--a');
+  const lens   = isLens();
+  const mono   = token('--mono');
+  const box    = lens ? 'round-rectangle' : null;   // the lens look draws every node as a card; its border style tells the types apart
   return [
     {
       selector: 'node',
@@ -89,10 +101,11 @@ function cyStyle() {
         'color': NODE_COLORS.dialogue.text,
         'label': 'data(label)',
         'text-wrap': 'wrap',
-        'text-max-width': 200,
-        'font-size': 12,
+        'text-max-width': lens ? 220 : 200,
+        'font-size': 13,   // never under 12px on screen: see fitGraph() for the zoom floor on phones
         'font-family': font,
-        'padding': 12,
+        'padding': lens ? 14 : 12,
+        'line-height': lens ? 1.4 : 1,
         'width': 'label',
         'height': 'label',
         'text-valign': 'center',
@@ -102,32 +115,38 @@ function cyStyle() {
       }
     },
     nodeTypeStyle('dialogue',  activeNodeColors().dialogue,  'round-rectangle'),
-    nodeTypeStyle('choice',    activeNodeColors().choice,    'diamond'),
-    nodeTypeStyle('condition', activeNodeColors().condition, 'diamond'),
-    nodeTypeStyle('label',     activeNodeColors().label,     'ellipse'),
-    nodeTypeStyle('jump',      activeNodeColors().jump,      'ellipse'),
+    nodeTypeStyle('choice',    activeNodeColors().choice,    box || 'diamond'),
+    nodeTypeStyle('condition', activeNodeColors().condition, box || 'diamond'),
+    nodeTypeStyle('label',     activeNodeColors().label,     box || 'ellipse'),
+    nodeTypeStyle('jump',      activeNodeColors().jump,      box || 'ellipse'),
+    ...(lens ? [
+      { selector: 'node[nodeType="dialogue"]',  style: { 'border-width': 1.5 } },
+      { selector: 'node[nodeType="choice"]',    style: { 'border-width': 2 } },
+      { selector: 'node[nodeType="condition"]', style: { 'border-style': 'dashed' } },
+      { selector: 'node[nodeType="jump"]',      style: { 'border-style': 'dotted', 'border-width': 2 } },
+    ] : []),
     ...Object.entries(activeNodeColors()).map(([type, colors]) => ({
       selector: `node[nodeType="${type}"]:selected`,
       style: {
         'border-width': 3,
-        'border-color': colors.border,
-        'underlay-color': colors.border,
-        'underlay-opacity': 0.4,
-        'underlay-padding': 9,
+        'border-color': lens ? accent : colors.border,
+        'underlay-color': lens ? accent : colors.border,
+        'underlay-opacity': lens ? 0.16 : 0.4,
+        'underlay-padding': lens ? 6 : 9,
       },
     })),
     {
       selector: 'edge',
       style: {
         'width': 1.5,
-        'line-color': line,
-        'target-arrow-color': line,
+        'line-color': lens ? muted : line,
+        'target-arrow-color': lens ? muted : line,
         'target-arrow-shape': 'triangle',
         'curve-style': 'bezier',
         'label': 'data(label)',
-        'font-size': 11,
-        'font-family': font,
-        'color': muted,
+        'font-size': 12,
+        'font-family': lens ? mono : font,
+        'color': lens ? accent : muted,
         'text-background-color': bgBase,
         'text-background-opacity': 0.85,
         'text-background-padding': '3px',
@@ -240,11 +259,21 @@ function drawGraph(nodes, edges, plan) {
 }
 
 // Fit the page on screen, but never blow a small page up past life size (one node filling the view).
-const FIT_MAX_ZOOM = 1.2;
+// On a phone it also never shrinks it below graphZoom()'s floor: a whole page squeezed into 390px
+// has node text of about 8px, so the page is shown at a readable size from its first node and the
+// viewer pans (touch drag) or pinches; the Fit button does the same.
 function fitGraph() {
   if (!cy) return;
   cy.fit(undefined, 32);
-  if (cy.zoom() > FIT_MAX_ZOOM) { cy.zoom(FIT_MAX_ZOOM); cy.center(); }
+  const phone = typeof isPhone === 'function' && isPhone();
+  const z = graphZoom(cy.zoom(), phone);
+  if (z === cy.zoom()) return;
+  cy.zoom(z);
+  const w = cy.width(), bb = cy.elements().boundingBox();
+  if ((bb.x2 - bb.x1) * z <= w - 32) { cy.center(); return; }   // still fits across: centred
+  const first = cy.nodes()[0];
+  if (!first) { cy.center(); return; }
+  cy.pan({ x: w / 2 - first.position('x') * z, y: 24 - (first.position('y') - first.height() / 2) * z });
 }
 
 // The canvas changes size when the inspector opens or closes, or the window does: keep the
@@ -276,8 +305,9 @@ function nodeLabel(n) {
       return full.length > 120 ? full.slice(0, 120) + '…' : full;
     }
     case 'condition': return n.label;
-    case 'label':     return `▸ ${n.name}`;
-    case 'jump':      return `↩ ${n.target}`;
+    // lens look: plain words, since the arrow glyphs come from a fallback font whose width the canvas mis-measures (the text got clipped)
+    case 'label':     return isLens() ? `label ${n.name}` : `▸ ${n.name}`;
+    case 'jump':      return isLens() ? `jump to ${n.target}` : `↩ ${n.target}`;
     default:          return n.type;
   }
 }
