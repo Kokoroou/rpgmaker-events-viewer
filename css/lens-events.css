@@ -218,6 +218,11 @@
   body.static details[open] summary::after { content: '\2212'; transform: none; background: var(--t); color: var(--bg); }
   body.static details > :not(summary) { margin: 0; padding: 0 20px 18px; }
   body.static details > p { font-size: 16px; }
+  body.static details > .lead { color: var(--t); }
+  body.static details > :not(summary):not(:last-child) { padding-bottom: 10px; }
+  body.static details > ul, body.static details > ol { padding-left: 42px; padding-right: 20px; }
+  body.static details > ul:last-child, body.static details > ol:last-child { padding-bottom: 18px; }
+  body.static details li { font-size: 16px; }
   body.static code { font-size: .86em; }
   body.static kbd { font: 12px var(--mono); border: 1px solid var(--bd2); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; background: var(--s1); color: var(--t); }
   body.static .cta { min-height: 48px; border-radius: var(--r); box-shadow: none; }

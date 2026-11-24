@@ -18,7 +18,7 @@
      { v: 1, opens, done, skips, nextAt }
 
    Sent ONLY when the user taps a star or presses Send, to the feedback inbox
-   (Cloudflare Worker, private repo Kokoroou/feedbacks, project 'makerlens-events'):
+   (private repo Kokoroou/feedbacks, project 'makerlens-events'):
      { project, kind, rating, comment, lang, meta: { opens (bucket), browser (bug only, removable) }, ref }
    NEVER sent: file, map, event or switch names, dialogue, game titles or any
    other game data. Documented in MakerLens Assets privacy.html#feedback; update
