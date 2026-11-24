@@ -278,6 +278,16 @@ test('layoutPlan: big pages defer the layout, huge ones also use the cheaper ran
   assert.deepEqual(plain(plan(400)),  { defer: true,  ranker: 'longest-path' });
 });
 
+test('graphZoom: desktop fits up to life size, phones never go under a readable zoom', () => {
+  const zoom = load(['constants.js'])('graphZoom');
+  assert.equal(zoom(0.3, false), 0.3);      // a big page on a desktop shrinks to fit
+  assert.equal(zoom(3, false), 1.2);        // a small one is not blown up
+  assert.equal(zoom(0.3, true), 1);         // phone: 13px node text stays readable, the page scrolls
+  assert.equal(zoom(0.9, true), 1);
+  assert.equal(zoom(1.1, true), 1.1);
+  assert.equal(zoom(3, true), 1.2);
+});
+
 test('resolveTextCodes turns <br> into a line break and drops other HTML-like tags', () => {
   reset();
   assert.equal(resolveTextCodes('Hello<br>there<BR/>you'), 'Hello\nthere\nyou');
