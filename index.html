@@ -215,9 +215,9 @@
         <span id="event-breadcrumb"></span>
         <div id="page-tabs" role="tablist" aria-label="Event pages"></div>
         <button class="btn-ghost btn-sm" id="save-btn" type="button" title="Play scenes with the switches and variables of a save file (it stays on your device)">
-          <svg width="14" height="14" aria-hidden="true"><use href="#i-file"/></svg><span id="save-label">Use a save</span>
+          <svg width="14" height="14" aria-hidden="true"><use href="#i-file"/></svg><span id="save-label">Load save</span>
         </button>
-        <button class="btn-primary btn-sm" id="scene-play" type="button" hidden title="Play this page with its pictures, dialogue and sound">
+        <button class="btn-primary btn-sm" id="scene-play" type="button" hidden title="Play the scenes with their pictures, dialogue and sound">
           <svg width="14" height="14" aria-hidden="true"><use href="#i-play"/></svg>Play
         </button>
       </div>
@@ -247,15 +247,6 @@
         <!-- Cytoscape canvas -->
         <div id="cy"></div>
 
-        <!-- Big Play button over the graph while the game has scenes (app.js: syncPlayHero) -->
-        <div id="play-hero" class="play-hero" hidden>
-          <button class="play-hero-btn" id="play-hero-btn" type="button">
-            <svg width="34" height="34" aria-hidden="true"><use href="#i-play"/></svg>
-          </button>
-          <strong id="play-hero-label" aria-hidden="true"></strong>
-          <span id="play-hero-sub"></span>
-          <button class="play-hero-all" id="play-hero-all" type="button" hidden></button>
-        </div>
 
         <!-- Zoom controls -->
         <div id="graph-controls">
@@ -311,7 +302,7 @@
         <li>Use the page tabs to switch between event pages. Click any node to see its full content in the inspector.</li>
         <li>Common Events are listed below the maps in the sidebar.</li>
         <li>Type in the search box at the top of the sidebar (or press <strong>/</strong>) to find scenes and events by name.</li>
-        <li>Scenes (pictures with dialogue) are listed at the top of the sidebar and marked on the event cards: press the big <strong>Play</strong> button to play them like in the game (Space plays and pauses, F goes full screen).</li>
+        <li>Scenes (pictures with dialogue) are listed at the top of the sidebar and marked on the event cards: press <strong>Play</strong> in the toolbar to play them like in the game (Space plays and pauses, F goes full screen).</li>
       </ol>
       <p class="about-more">Want the game's images and music? Open <a href="https://makerlens.kokoroou.workers.dev/assets/">MakerLens Assets</a>.</p>
       <p class="about-more">Questions? Read the <a href="faq.html">FAQ</a>: which folder to open, what the graph shows, privacy.</p>
