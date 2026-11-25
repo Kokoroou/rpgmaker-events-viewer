@@ -10,20 +10,20 @@
      (js/analytics.js). No feedback form here, so connect-src is 'none'. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https://makerlens.goatcounter.com; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>RPG Maker Event Viewer FAQ — Folders, Scenes, Saves | MakerLens</title>
-<meta name="description" content="How to view RPG Maker MV, MZ, VX Ace, VX, XP and 2000/2003 events without the editor: which folder to open, what the flow graph shows, finding what unlocks an ending, switch names, privacy.">
+<meta name="description" content="How to view RPG Maker 2000/2003, XP, VX, VX Ace, MV and MZ events without the editor: which folder to open, what the flow graph shows, finding what unlocks an ending, switch names, privacy.">
 <link rel="canonical" href="https://makerlens.kokoroou.workers.dev/events/faq.html"> <!-- nosemgrep: html.security.audit.missing-integrity.missing-integrity -- a canonical URL, not a fetched resource -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="MakerLens">
 <meta property="og:url" content="https://makerlens.kokoroou.workers.dev/events/faq.html">
 <meta property="og:title" content="RPG Maker Event Viewer FAQ — Folders, Scenes, Saves | MakerLens">
-<meta property="og:description" content="View RPG Maker MV, MZ, VX Ace, VX, XP and 2000/2003 events as a flow graph without the editor: what to open, what the graph shows and how to find what unlocks an ending.">
+<meta property="og:description" content="View RPG Maker 2000/2003, XP, VX, VX Ace, MV and MZ events as a flow graph without the editor: what to open, what the graph shows and how to find what unlocks an ending.">
 <meta property="og:image" content="https://makerlens.kokoroou.workers.dev/events/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="MakerLens Events — RPG Maker events as a flow graph, in your browser">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="RPG Maker Event Viewer FAQ — Folders, Scenes, Saves | MakerLens">
-<meta name="twitter:description" content="View RPG Maker MV, MZ, VX Ace, VX, XP and 2000/2003 events as a flow graph without the editor: what to open, what the graph shows and how to find what unlocks an ending.">
+<meta name="twitter:description" content="View RPG Maker 2000/2003, XP, VX, VX Ace, MV and MZ events as a flow graph without the editor: what to open, what the graph shows and how to find what unlocks an ending.">
 <meta name="twitter:image" content="https://makerlens.kokoroou.workers.dev/events/og-image.png">
 <meta name="twitter:image:alt" content="MakerLens Events — RPG Maker events as a flow graph, in your browser">
 <!-- FAQPage: questions and answers must match the visible <details> below
@@ -62,7 +62,7 @@
       "name": "Which RPG Maker versions are supported?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003. MV and MZ keep events in plain JSON. VX Ace, VX and XP keep them in Ruby files (.rvdata2, .rvdata, .rxdata), usually packed in Game.rgss3a, .rgss2a or .rgssad. Open the game folder and they are read from the archive in your browser. 2000 / 2003 keep them in RPG_RT.ldb, RPG_RT.lmt and Map####.lmu in the game folder itself. Their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from Picture/ and sound from Music/ and Sound/. For the images and audio of every version, use MakerLens Assets."
+        "text": "RPG Maker 2000 / 2003, XP, VX, VX Ace, MV and MZ. 2000 / 2003 keep events in RPG_RT.ldb, RPG_RT.lmt and Map####.lmu in the game folder itself. Their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from Picture/ and sound from Music/ and Sound/. XP, VX and VX Ace keep them in Ruby files (.rxdata, .rvdata, .rvdata2), usually packed in .rgssad, .rgss2a or Game.rgss3a. Open the game folder and they are read from the archive in your browser. MV and MZ keep them in plain JSON. For the images and audio of every version, use MakerLens Assets."
       }
     },
     {
@@ -244,7 +244,7 @@
 <main>
   <a class="back" href="./">← Back to MakerLens Events</a>
   <h1>RPG Maker event viewer FAQ</h1>
-  <p class="intro">MakerLens Events shows the events of an RPG Maker game (MV, MZ, VX Ace, VX, XP, 2000 or 2003) as a flow graph, right in your browser: dialogue, choices, conditions, labels and jumps, and it plays dialogue scenes. It works on released games, with no editor and no plugin. <strong>Your files never leave your device.</strong></p>
+  <p class="intro">MakerLens Events shows the events of an RPG Maker game (2000, 2003, XP, VX, VX Ace, MV or MZ) as a flow graph, right in your browser: dialogue, choices, conditions, labels and jumps, and it plays dialogue scenes. It works on released games, with no editor and no plugin. <strong>Your files never leave your device.</strong></p>
 
   <section class="howto lens-only" aria-labelledby="howto-title">
     <h2 class="group" id="howto-title">How to use</h2>
@@ -289,11 +289,11 @@
     </details>
     <details>
       <summary><h3>Which RPG Maker versions are supported?</h3></summary>
-      <p class="lead">RPG Maker MZ, MV, VX Ace, VX, XP and 2000 / 2003.</p>
+      <p class="lead">RPG Maker 2000 / 2003, XP, VX, VX Ace, MV and MZ.</p>
       <ul>
-        <li>MV and MZ keep events in plain JSON.</li>
-        <li>VX Ace, VX and XP keep them in Ruby files (<code>.rvdata2</code>, <code>.rvdata</code>, <code>.rxdata</code>), usually packed in <code>Game.rgss3a</code>, <code>.rgss2a</code> or <code>.rgssad</code>. Open the game folder and they are read from the archive in your browser.</li>
-        <li>2000 / 2003 keep them in <code>RPG_RT.ldb</code>, <code>RPG_RT.lmt</code> and <code>Map####.lmu</code> in the game folder itself. Their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from <code>Picture/</code> and sound from <code>Music/</code> and <code>Sound/</code>.</li>
+        <li>2000 / 2003 keep events in <code>RPG_RT.ldb</code>, <code>RPG_RT.lmt</code> and <code>Map####.lmu</code> in the game folder itself. Their Japanese (Shift-JIS) or Western text is recognised, and scene previews take pictures from <code>Picture/</code> and sound from <code>Music/</code> and <code>Sound/</code>.</li>
+        <li>XP, VX and VX Ace keep them in Ruby files (<code>.rxdata</code>, <code>.rvdata</code>, <code>.rvdata2</code>), usually packed in <code>.rgssad</code>, <code>.rgss2a</code> or <code>Game.rgss3a</code>. Open the game folder and they are read from the archive in your browser.</li>
+        <li>MV and MZ keep them in plain JSON.</li>
         <li>For the images and audio of every version, use <a href="../assets/">MakerLens Assets</a>.</li>
       </ul>
     </details>
