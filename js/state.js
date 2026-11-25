@@ -21,7 +21,7 @@ const S = {
   search:           '',         // sidebar search box (search.js); results replace the tree
   searchExpanded:   { scenes: false, events: false },   // every result, not the first few
   folderHandle:     null,       // directory handle of the open folder, for the switch to Assets (memory only; js/handoff.js)
-  sceneEntry:       null,       // what the toolbar's Preview button plays (player.js)
+  sceneEntry:       null,       // the page on screen as a scene: what the Play buttons play (app.js, player.js)
   loc:              null,       // plugin text keys → text, from the game's loc/ files (loc.js)
   save:             null,       // an open save file (save.js): switches, variables, self switches, actors, party (memory only)
 };

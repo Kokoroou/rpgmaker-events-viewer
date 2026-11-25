@@ -100,6 +100,8 @@
   <symbol id="i-volume" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M15.5 9a4 4 0 010 6M18.5 6.5a7.5 7.5 0 010 11"/></symbol>
   <symbol id="i-mute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5v14l-4.5-4.5H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></symbol>
   <symbol id="i-film" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+  <symbol id="i-maximize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-minimize" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
   <symbol id="i-skip-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20L9 12l10-8v16zM5 19V5"/></symbol>
   <symbol id="i-skip-fwd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l10 8-10 8V4zM19 5v14"/></symbol>
   <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a13.2 13.2 0 0 1-1.67 2.68M6.61 6.61A13.5 13.5 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.39-1.61M2 2l20 20"/></symbol>
@@ -164,8 +166,8 @@
     <div id="setup">
       <div id="setup-inner">
         <div class="setup-hero">
-          <h2 class="setup-title">See how an RPG Maker game’s events work</h2>
-          <p class="setup-sub">Every event’s dialogue, choices and conditions as a flow graph.</p>
+          <h2 class="setup-title">Play an RPG Maker game’s scenes, see how its events work</h2>
+          <p class="setup-sub">Cutscenes with their pictures and sound, and every event’s logic as a flow graph.</p>
         </div>
 
         <div class="handoff" id="handoff" hidden>
@@ -177,7 +179,7 @@
         <div id="drop-zone">
           <div class="dz-icon"><svg width="30" height="30" aria-hidden="true"><use href="#i-folder"/></svg></div>
           <button class="btn-primary btn-lg" id="open-game-btn">Select Game Folder</button>
-          <div class="dz-hint">or drop the game folder (or its <code>data/</code> folder) anywhere on this page</div>
+          <div class="dz-hint">or drop it anywhere on this page</div>
           <ul class="engine-chips" aria-label="Supported engines">
             <li>2000</li><li>2003</li><li>XP</li><li>VX</li><li>VX Ace</li><li>MV</li><li>MZ</li>
           </ul>
@@ -212,11 +214,11 @@
         </button>
         <span id="event-breadcrumb"></span>
         <div id="page-tabs" role="tablist" aria-label="Event pages"></div>
-        <button class="btn-ghost btn-sm" id="save-btn" type="button" title="Preview scenes with the switches and variables of a save file (it stays on your device)">
-          <svg width="14" height="14" aria-hidden="true"><use href="#i-file"/></svg><span id="save-label">Use a save</span>
+        <button class="btn-ghost btn-sm" id="save-btn" type="button" title="Play scenes with the switches and variables of a save file (it stays on your device)">
+          <svg width="14" height="14" aria-hidden="true"><use href="#i-file"/></svg><span id="save-label">Load save</span>
         </button>
-        <button class="btn-primary btn-sm" id="scene-play" type="button" hidden title="Preview this scene with its pictures, dialogue and sound">
-          <svg width="14" height="14" aria-hidden="true"><use href="#i-play"/></svg>Preview
+        <button class="btn-primary btn-sm" id="scene-play" type="button" hidden title="Play the scenes with their pictures, dialogue and sound">
+          <svg width="14" height="14" aria-hidden="true"><use href="#i-play"/></svg>Play
         </button>
       </div>
 
@@ -244,6 +246,7 @@
 
         <!-- Cytoscape canvas -->
         <div id="cy"></div>
+
 
         <!-- Zoom controls -->
         <div id="graph-controls">
@@ -299,7 +302,7 @@
         <li>Use the page tabs to switch between event pages. Click any node to see its full content in the inspector.</li>
         <li>Common Events are listed below the maps in the sidebar.</li>
         <li>Type in the search box at the top of the sidebar (or press <strong>/</strong>) to find scenes and events by name.</li>
-        <li>Scenes (pictures with dialogue) are listed at the top of the sidebar and marked on the event cards: click one, or press <strong>Preview</strong>, to play it like in the game.</li>
+        <li>Scenes (pictures with dialogue) are listed at the top of the sidebar and marked on the event cards: press <strong>Play</strong> in the toolbar to play them like in the game (Space plays and pauses, F goes full screen).</li>
       </ol>
       <p class="about-more">Want the game's images and music? Open <a href="https://makerlens.kokoroou.workers.dev/assets/">MakerLens Assets</a>.</p>
       <p class="about-more">Questions? Read the <a href="faq.html">FAQ</a>: which folder to open, what the graph shows, privacy.</p>
@@ -444,7 +447,7 @@
     </button>
   </div>
   <div class="pl-main" id="pl-main">
-    <button type="button" class="pl-side pl-side-prev" id="pl-side-prev" title="Previous (←)" aria-label="Previous line">
+    <button type="button" class="pl-side pl-side-prev" id="pl-side-prev" title="Previous line (←)" aria-label="Previous line">
       <svg width="28" height="28" aria-hidden="true"><use href="#i-left"/></svg>
     </button>
     <div id="pl-frame">
@@ -459,26 +462,29 @@
         </div>
       </div>
     </div>
-    <button type="button" class="pl-side pl-side-next" id="pl-side-next" title="Next (→ / Space)" aria-label="Next line">
+    <button type="button" class="pl-side pl-side-next" id="pl-side-next" title="Next line (→)" aria-label="Next line">
       <svg width="28" height="28" aria-hidden="true"><use href="#i-right"/></svg>
     </button>
   </div>
-  <div class="pl-bar">
+  <div class="pl-bar" id="pl-bar">
     <input type="range" id="pl-seek" min="0" max="0" value="0" step="1" aria-label="Line">
     <div class="pl-ctrl">
       <div class="pl-nav">
-      <button type="button" class="pl-btn" id="pl-scene-prev" title="Previous scene (Shift+←)" aria-label="Previous scene"><svg width="20" height="20" aria-hidden="true"><use href="#i-skip-back"/></svg></button>
-      <button type="button" class="pl-btn" id="pl-prev" title="Previous (←)" aria-label="Previous line"><svg width="20" height="20" aria-hidden="true"><use href="#i-left"/></svg></button>
-      <button type="button" class="pl-btn pl-btn-main" id="pl-auto" title="Auto play (A)" aria-label="Auto play" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-play"/></svg></button>
-      <button type="button" class="pl-btn" id="pl-next" title="Next (→ / Space)" aria-label="Next line"><svg width="20" height="20" aria-hidden="true"><use href="#i-right"/></svg></button>
-      <button type="button" class="pl-btn" id="pl-scene-next" title="Next scene (Shift+→)" aria-label="Next scene"><svg width="20" height="20" aria-hidden="true"><use href="#i-skip-fwd"/></svg></button>
+      <button type="button" class="pl-btn" id="pl-scene-prev" title="Previous scene (Shift+P)" aria-label="Previous scene"><svg width="20" height="20" aria-hidden="true"><use href="#i-skip-back"/></svg></button>
+      <button type="button" class="pl-btn" id="pl-prev" title="Previous line (←)" aria-label="Previous line"><svg width="20" height="20" aria-hidden="true"><use href="#i-left"/></svg></button>
+      <button type="button" class="pl-btn pl-btn-main" id="pl-auto" title="Play (k)" aria-label="Play" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-play"/></svg></button>
+      <button type="button" class="pl-btn" id="pl-next" title="Next line (→)" aria-label="Next line"><svg width="20" height="20" aria-hidden="true"><use href="#i-right"/></svg></button>
+      <button type="button" class="pl-btn" id="pl-scene-next" title="Next scene (Shift+N)" aria-label="Next scene"><svg width="20" height="20" aria-hidden="true"><use href="#i-skip-fwd"/></svg></button>
+      </div>
+      <div class="pl-sound">
+      <button type="button" class="pl-btn" id="pl-mute" title="Mute (m)" aria-label="Mute" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-volume"/></svg></button>
+      <input type="range" id="pl-vol" min="0" max="100" value="80" step="1" aria-label="Volume">
       </div>
       <span id="pl-count" aria-live="polite"></span>
       <span class="pl-spacer"></span>
       <div class="pl-extra">
-      <button type="button" class="pl-btn" id="pl-hide" title="Hide dialogue (H)" aria-label="Hide dialogue" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-eye-off"/></svg></button>
-      <button type="button" class="pl-btn" id="pl-mute" title="Mute (M)" aria-label="Mute" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-volume"/></svg></button>
-      <input type="range" id="pl-vol" min="0" max="100" value="80" step="1" aria-label="Volume">
+      <button type="button" class="pl-btn" id="pl-hide" title="Hide dialogue (c)" aria-label="Hide dialogue" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-eye-off"/></svg></button>
+      <button type="button" class="pl-btn" id="pl-full" title="Full screen (f)" aria-label="Full screen" aria-pressed="false"><svg width="20" height="20" aria-hidden="true"><use href="#i-maximize"/></svg></button>
       </div>
     </div>
   </div>

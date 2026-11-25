@@ -88,9 +88,6 @@
 .ev-card-name { font-size: 14px; font-weight: 600; color: var(--t); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev-card-meta { font-size: 12px; color: var(--t3); margin-top: 2px; font-variant-numeric: tabular-nums; }
 /* Scene cards: the card opens the graph, the Preview button under its text plays the scene */
-.ev-card-wrap { position: relative; }
-.ev-card-wrap .ev-card { height: 100%; padding-bottom: 54px; }
-.ev-card-play { position: absolute; left: 14px; bottom: 12px; gap: 6px; }
 
 /* "Laying out N nodes…" while a big event page is being drawn */
 .layout-notice {

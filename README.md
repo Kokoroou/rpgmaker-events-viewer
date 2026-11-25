@@ -12,7 +12,7 @@ See how an RPG Maker game's events work: dialogue, choices and conditions as an 
 - **Local-only and read-only** — files are read in your browser; nothing about your game is sent, and nothing is written back
 - **Event flow graph** — dialogue, choice branches, conditions (with switch, variable and actor names), labels and jumps; after a branch the flow joins up again. Click a node to read it in full; page tabs switch between event pages
 - **Scene player** — events that show pictures with dialogue are listed as scenes; **Preview** plays them with pictures, faces, music and sound, line by line, like in the game
-- **Use a save** — optional: start scenes from a save file's switches and variables (read only, kept in the browser)
+- **Load save** — optional: start scenes from a save file's switches and variables (read only, kept in the browser)
 - **Sidebar** — scenes, the map tree and common events, with search by event or map name (press `/`)
 - **Any game folder** — pick or drop it; XP / VX / VX Ace data is also read from the game's archive; **View another way** opens data files one by one or a game link
 - **Switch to Assets** — carry the open folder to MakerLens Assets without picking it again (Chrome / Edge)
@@ -36,7 +36,7 @@ Desktop Chrome, Edge, Firefox and Brave work best; phone browsers may not offer 
 | XP / VX / VX Ace | `Data/*.rxdata` / `.rvdata` / `.rvdata2` (Ruby Marshal, `js/rgss.js`), also from `.rgssad` / `.rgss2a` / `Game.rgss3a` |
 | MV / MZ | `data/*.json` (MV: `www/data/`) |
 
-Save files for **Use a save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.rxdata` (`js/save.js`). Formats and algorithms are documented in the code comments.
+Save files for **Load save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.rxdata` (`js/save.js`). Formats and algorithms are documented in the code comments.
 
 ## Privacy and legal
 

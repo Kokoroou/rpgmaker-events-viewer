@@ -51,6 +51,7 @@ function showPickerMessage(mapId, text) {
   buildBreadcrumb(mapId);
   EL.pageTabs.innerHTML = '';
   EL.eventPicker.classList.remove('hidden');
+  syncPlay();
   EL.eventListGrid.innerHTML = '';
   EL.eventListGrid.appendChild(el('div', 'detail-empty', text));
 }
@@ -84,9 +85,11 @@ function showEventPicker(mapId) {
   buildBreadcrumb(mapId);
   EL.pageTabs.innerHTML = '';
   EL.eventPicker.classList.remove('hidden');
+  syncPlay();
 
   const grid = EL.eventListGrid;
   grid.innerHTML = '';
+  syncPlay();
 
   // Events with a scene (pictures + dialogue, scenes.js) first; the rest keeps map order.
   const events = mapData.events.map(ev => ({ ev, scene: ev.pages.findIndex(page => isSceneList(page.list)) }))
@@ -104,18 +107,7 @@ function showEventPicker(mapId) {
       card.appendChild(badge);
     }
     card.addEventListener('click', () => selectEvent(mapId, ev.id, Math.max(0, scene)));
-    if (scene < 0) { grid.appendChild(card); continue; }
-    // A scene can be played straight from its card (a sibling button: buttons do not nest).
-    const wrap = el('div', 'ev-card-wrap');
-    const play = el('button', 'btn-primary btn-sm ev-card-play');
-    play.type = 'button';
-    play.title = 'Preview this scene with its pictures, dialogue and sound';
-    play.setAttribute('aria-label', `Preview scene ${ev.name}`);
-    play.appendChild(icon('play', 14));
-    play.appendChild(document.createTextNode('Preview'));
-    play.addEventListener('click', () => playScene({ kind: 'map', mapId, evId: ev.id, page: scene }));
-    wrap.append(card, play);
-    grid.appendChild(wrap);
+    grid.appendChild(card);
   }
 }
 
@@ -175,12 +167,37 @@ function redrawPage() {
 }
 
 /* ── Scene preview (player.js) ───────────────────────── */
-// The toolbar's Preview button plays the page / common event on screen, when it shows
-// at least a picture or a message.
+// S.sceneEntry: the page / common event on screen, when it shows at least a picture or a
+// message.
 function setSceneEntry(entry) {
   const s = entry && sceneStats(entry.list);
   S.sceneEntry = s && (s.pictures || s.messages) ? entry : null;
-  if (EL.scenePlay) EL.scenePlay.hidden = !S.sceneEntry;
+  syncPlay();
+}
+
+// The toolbar's Play button, next to Load save: shown while there is something to play.
+// It plays the page on screen; with none (the event list), this map's first scene, else the
+// game's first. Auto play, and the player runs on into the next scenes (findScenes order).
+function playTarget() {
+  if (S.sceneEntry) return { entry: S.sceneEntry };
+  const all = findScenes();
+  const here = all.find(sc => sc.kind === 'map' && sc.mapId === S.selectedMapId);
+  return (here || all[0]) ? { scene: here || all[0], n: all.length } : null;
+}
+function syncPlay() {
+  if (!EL.scenePlay) return;
+  const t = playTarget();
+  EL.scenePlay.hidden = !t;
+  if (!t) return;
+  EL.scenePlay.title = t.entry
+    ? 'Play this page with its pictures, dialogue and sound, then the next scenes'
+    : `Play the scenes (${t.n}) from ${t.scene.name}`;
+}
+function playNow() {
+  const t = playTarget();
+  if (!t) return;
+  if (t.entry) openScene(t.entry, { auto: true });
+  else playScene(t.scene, { auto: true });
 }
 
 // The toolbar's save button: its file name while a save is in use (error: shown for a moment).
@@ -191,10 +208,10 @@ function syncSave(error) {
   const on = !!S.save;
   EL.saveBtn.classList.toggle('on', on);
   EL.saveBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-  EL.saveLabel.textContent = error ? 'Save not read' : on ? `Save: ${S.save.name}` : 'Use a save';
+  EL.saveLabel.textContent = error ? 'Save not read' : on ? `Save: ${S.save.name}` : 'Load save';
   EL.saveBtn.title = error || (on
     ? `Scenes start from the switches and variables of ${S.save.name}. Click to stop using it.`
-    : 'Preview scenes with the switches and variables of a save file (it stays on your device)');
+    : 'Play scenes with the switches and variables of a save file (it stays on your device)');
   if (error) saveErrTimer = setTimeout(() => syncSave(), 5000);
 }
 
@@ -298,7 +315,7 @@ function init() {
     EL.detailToggle.classList.toggle('active', S.detailOpen);
   });
 
-  EL.scenePlay.addEventListener('click', () => { if (S.sceneEntry) openScene(S.sceneEntry); });
+  EL.scenePlay.addEventListener('click', playNow);
 
   // A save file (save.js): scenes then start from its switches and variables. Click again to drop it.
   EL.saveBtn.addEventListener('click', () => {

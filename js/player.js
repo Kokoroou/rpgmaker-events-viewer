@@ -2,8 +2,12 @@
    Like a video preview on Google Drive: the page dims, the scene sits in the middle
    at the game's screen size (scaled to fit), the controls run along the bottom.
    Each step of the timeline (scene-script.js) is one message with the pictures and
-   music of that moment. Click / → / Space: next, ←: back, A: auto, M: mute,
-   H: hide the dialogue, Esc: close.
+   music of that moment. Keys follow YouTube: k / Space: play-pause (auto play),
+   → / l / Enter / a click: next line, ← / j: back, Shift+N / Shift+P: next / previous scene,
+   f: full screen, m: mute, ↑ / ↓: volume, c: hide the dialogue (captions), Esc: close.
+   Full screen (and a phone held sideways) lays the controls over the scene and hides them
+   after PLAYER_IDLE without input, like a video player; the button also turns a phone to
+   landscape where the browser allows it.
    Scenes run on into each other (in the sidebar's order, findScenes()): next on the
    last message opens the next scene, back on the first one opens the previous scene
    at its end; Shift+← / Shift+→ jump a whole scene. Auto play carries on.
@@ -20,6 +24,9 @@ const PLAYER_FACE = 144;                   // face graphics: 4×2 cells of 144px
 const PLAYER_MSG_H = 180;                  // message window: 4 lines, like the game
 const PLAYER_WPM = 300;                    // reading speed: typing and auto play
 const PLAYER_HOLD = 2000;                  // auto play: time to read / look at the CG once a message is shown (ms)
+const PLAYER_IDLE = 3000;                  // full screen: the controls fade out after this long without input (ms)
+// A phone held sideways: the scene takes the whole screen, controls over it.
+const PLAYER_SIDEWAYS = window.matchMedia ? matchMedia('(orientation: landscape) and (max-height: 500px)') : null;
 const PLAYER_CJK = /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff\uac00-\ud7af\uff66-\uff9f]/g;
 
 // How long a message takes to read at PLAYER_WPM: words split by spaces, and two
@@ -47,6 +54,9 @@ const Player = {
   soundGen: 0,                       // bumped on every step change: late loads of old sounds stay silent
   missing: new Set(),
   lastFocus: null,
+  pseudoFull: false,        // full screen without the Fullscreen API (iPhone): the page itself
+  idleTimer: 0,
+  touch: false,             // the last input was a touch (no hover to keep the controls up)
 
   init() {
     const $ = id => document.getElementById(id);
@@ -56,6 +66,7 @@ const Player = {
       msg: $('pl-msg'), namebox: $('pl-namebox'), face: $('pl-face'), text: $('pl-text'), choices: $('pl-choices'),
       seek: $('pl-seek'), count: $('pl-count'), auto: $('pl-auto'), mute: $('pl-mute'), volume: $('pl-vol'),
       hide: $('pl-hide'), scenePrev: $('pl-scene-prev'), sceneNext: $('pl-scene-next'),
+      full: $('pl-full'), bar: $('pl-bar'),
     };
     // The text is two spans: what has been typed, and the rest laid out but invisible.
     this.el.shown = document.createElement('span');
@@ -90,8 +101,14 @@ const Player = {
       if (this.hideMsg) this.setHideMsg(false);   // like the game: a click brings the window back
       else this.next();
     });
-    this.el.main.addEventListener('click', e => { if (e.target === this.el.main) this.close(); });
+    this.el.main.addEventListener('click', e => { if (e.target === this.el.main && !this.overlay()) this.close(); });
+    this.el.full.addEventListener('click', () => this.toggleFull());
     document.addEventListener('keydown', e => this.onKey(e), true);
+    document.addEventListener('fullscreenchange', () => this.layout());
+    document.addEventListener('webkitfullscreenchange', () => this.layout());
+    if (PLAYER_SIDEWAYS && PLAYER_SIDEWAYS.addEventListener) PLAYER_SIDEWAYS.addEventListener('change', () => this.layout());
+    for (const t of ['pointermove', 'pointerdown']) this.el.root.addEventListener(t, e => { this.touch = e.pointerType === 'touch'; this.wake(); });
+    this.el.root.addEventListener('focusin', () => this.wake());
     new ResizeObserver(() => this.fit()).observe(this.el.main);
     this.applyVolume();
   },
@@ -129,17 +146,22 @@ const Player = {
       });
     }
     this.el.root.focus();
+    this.layout();
     this.note();
     this.sceneButtons();
     if (opts.atEnd) this.render(Math.max(0, this.steps.length - 1), false);
     else this.render(0, true);
-    if (auto) this.setAuto(true);
+    if (auto || opts.auto) this.setAuto(true);
   },
 
   close() {
     if (!this.el || this.el.root.hidden) return;
     this.stop();
+    if (this.fullElement()) this.exitFull();
+    this.pseudoFull = false;
+    clearTimeout(this.idleTimer);
     this.el.root.hidden = true;
+    this.el.root.classList.remove('pl-ov', 'pl-idle', 'pl-full');
     document.body.classList.remove('pl-open');
     if (this.lastFocus && this.lastFocus.focus) this.lastFocus.focus();
   },
@@ -166,12 +188,14 @@ const Player = {
     this.fit();
   },
 
-  // Scale the stage (game pixels) to the space between the top bar and the controls.
+  // Scale the stage (game pixels) to the space between the top bar and the controls, or to
+  // the whole screen when the controls lie over it (full screen, phone sideways).
   fit() {
     if (!this.el || this.el.root.hidden) return;
     const box = this.el.main.getBoundingClientRect();
-    const side = box.width > 700 ? 128 : 16;
-    const s = Math.max(0.1, Math.min((box.width - side) / this.W, (box.height - 16) / this.H));
+    const ov = this.overlay();
+    const side = ov ? 0 : box.width > 700 ? 128 : 16;
+    const s = Math.max(0.1, Math.min((box.width - side) / this.W, (box.height - (ov ? 0 : 16)) / this.H));
     this.el.frame.style.width = Math.floor(this.W * s) + 'px';
     this.el.frame.style.height = Math.floor(this.H * s) + 'px';
     this.el.stage.style.transform = `scale(${s})`;
@@ -220,8 +244,66 @@ const Player = {
     const prev = this.sceneAt(-1), next = this.sceneAt(1);
     this.el.scenePrev.disabled = !prev;
     this.el.sceneNext.disabled = !next;
-    this.el.scenePrev.title = prev ? `Previous scene: ${prev.name} (Shift+←)` : 'No previous scene';
-    this.el.sceneNext.title = next ? `Next scene: ${next.name} (Shift+→)` : 'No next scene';
+    this.el.scenePrev.title = prev ? `Previous scene: ${prev.name} (Shift+P)` : 'No previous scene';
+    this.el.sceneNext.title = next ? `Next scene: ${next.name} (Shift+N)` : 'No next scene';
+  },
+
+  /* ── Full screen, and the controls over the scene ── */
+  fullElement() { return document.fullscreenElement || document.webkitFullscreenElement || null; },
+  isFull() { return this.pseudoFull || (!!this.el && this.fullElement() === this.el.root); },
+  // The controls lie over the scene and hide themselves: full screen, or a phone held sideways.
+  overlay() { return this.isFull() || !!(PLAYER_SIDEWAYS && PLAYER_SIDEWAYS.matches); },
+
+  toggleFull() {
+    if (this.isFull()) { this.exitFull(); return; }
+    const root = this.el.root;
+    const req = root.requestFullscreen || root.webkitRequestFullscreen;
+    const landscape = () => { try { const o = screen.orientation; if (o && o.lock && this.W >= this.H) o.lock('landscape').catch(() => {}); } catch {} };
+    if (!req) { this.pseudoFull = true; this.layout(); return; }   // iPhone: the page fills the screen, the viewer turns it
+    try {
+      const r = req.call(root, { navigationUI: 'hide' });
+      if (r && r.then) r.then(landscape, () => { this.pseudoFull = true; this.layout(); });
+      else landscape();
+    } catch { this.pseudoFull = true; this.layout(); }
+  },
+
+  exitFull() {
+    this.pseudoFull = false;
+    try { const o = screen.orientation; if (o && o.unlock) o.unlock(); } catch {}
+    if (this.fullElement()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      try { const r = exit && exit.call(document); if (r && r.catch) r.catch(() => {}); } catch {}
+    }
+    this.layout();
+  },
+
+  layout() {
+    if (!this.el || this.el.root.hidden) return;
+    const full = this.isFull(), ov = this.overlay();
+    this.el.root.classList.toggle('pl-full', full);
+    this.el.root.classList.toggle('pl-ov', ov);
+    this.el.full.setAttribute('aria-pressed', full ? 'true' : 'false');
+    this.el.full.querySelector('use').setAttribute('href', full ? '#i-minimize' : '#i-maximize');
+    this.el.full.title = full ? 'Exit full screen (f)' : 'Full screen (f)';
+    this.el.full.setAttribute('aria-label', full ? 'Exit full screen' : 'Full screen');
+    this.wake();
+    this.fit();
+  },
+
+  // Any input shows the controls; over the scene they fade out again after PLAYER_IDLE,
+  // unless the mouse rests on them.
+  wake() {
+    if (!this.el || this.el.root.hidden) return;
+    this.el.root.classList.remove('pl-idle');
+    clearTimeout(this.idleTimer);
+    if (!this.overlay()) return;
+    this.idleTimer = setTimeout(() => {
+      if (!this.overlay() || this.el.root.hidden) return;
+      const held = !this.touch && (this.el.bar.matches(':hover') || this.el.root.querySelector('.pl-top').matches(':hover'));
+      const typing = document.activeElement === this.el.seek || document.activeElement === this.el.volume;
+      if (held || typing) return this.wake();
+      this.el.root.classList.add('pl-idle');
+    }, PLAYER_IDLE);
   },
 
   /* ── Hide the dialogue to see the pictures alone ── */
@@ -230,7 +312,7 @@ const Player = {
     this.el.stage.classList.toggle('pl-hide-msg', on);
     this.el.hide.setAttribute('aria-pressed', on ? 'true' : 'false');
     this.el.hide.querySelector('use').setAttribute('href', on ? '#i-eye' : '#i-eye-off');
-    this.el.hide.title = on ? 'Show dialogue (H)' : 'Hide dialogue (H)';
+    this.el.hide.title = on ? 'Show dialogue (c)' : 'Hide dialogue (c)';
     this.el.hide.setAttribute('aria-label', on ? 'Show dialogue' : 'Hide dialogue');
   },
 
@@ -570,7 +652,8 @@ const Player = {
     if (!this.el) return;
     this.el.auto.setAttribute('aria-pressed', on ? 'true' : 'false');
     this.el.auto.querySelector('use').setAttribute('href', on ? '#i-pause' : '#i-play');
-    this.el.auto.title = on ? 'Pause (A)' : 'Auto play (A)';
+    this.el.auto.title = on ? 'Pause (k)' : 'Play (k)';
+    this.el.auto.setAttribute('aria-label', on ? 'Pause' : 'Play');
     if (on) this.schedule();
   },
 
@@ -584,28 +667,44 @@ const Player = {
     this.timer = setTimeout(() => this.next(), PLAYER_HOLD + Math.min(15000, read));
   },
 
+  // Keys of a video player (YouTube): k / Space play-pause, → ← (l j) one line, Shift+N /
+  // Shift+P a scene, f full screen, m mute, ↑ ↓ volume, c the dialogue (captions).
+  // A / H, the player's first keys, still work.
   onKey(e) {
     if (!this.el || this.el.root.hidden) return;
     if (e.target === this.el.volume || e.target === this.el.seek) { if (e.key !== 'Escape') return; }
-    const k = e.key;
+    const k = e.key, low = k.length === 1 ? k.toLowerCase() : k;
+    const onButton = e.target.closest && e.target.closest('button');
     let used = true;
-    if (k === 'Escape') this.close();
-    else if (e.shiftKey && k === 'ArrowRight') this.toScene(1);
-    else if (e.shiftKey && k === 'ArrowLeft') this.toScene(-1);
-    else if (k === 'ArrowRight' || k === ' ' || k === 'Enter' || k === 'PageDown') {
-      if ((k === ' ' || k === 'Enter') && e.target.closest && e.target.closest('button')) return;   // the button's own action
+    this.wake();
+    if (e.ctrlKey || e.metaKey || e.altKey) used = false;
+    else if (k === 'Escape') { if (this.pseudoFull) this.exitFull(); else this.close(); }
+    else if (e.shiftKey && (k === 'ArrowRight' || low === 'n')) this.toScene(1);
+    else if (e.shiftKey && (k === 'ArrowLeft' || low === 'p')) this.toScene(-1);
+    else if (k === ' ' || low === 'k' || low === 'a') {
+      if (k === ' ' && onButton) return;   // the button's own action
+      this.setAuto(!this.auto);
+    }
+    else if (k === 'ArrowRight' || low === 'l' || k === 'Enter' || k === 'PageDown') {
+      if (k === 'Enter' && onButton) return;
       this.next();
     }
-    else if (k === 'ArrowLeft' || k === 'PageUp') this.back();
+    else if (k === 'ArrowLeft' || low === 'j' || k === 'PageUp') this.back();
+    else if (k === 'ArrowUp' || k === 'ArrowDown') this.nudgeVolume(k === 'ArrowUp' ? 0.05 : -0.05);
     else if (k === 'Home') this.go(0);
     else if (k === 'End') this.go(this.steps.length - 1);
-    else if (k === 'a' || k === 'A') this.setAuto(!this.auto);
-    else if (k === 'm' || k === 'M') this.setMuted(!this.muted);
-    else if (k === 'h' || k === 'H') this.setHideMsg(!this.hideMsg);
+    else if (low === 'f') this.toggleFull();
+    else if (low === 'm') this.setMuted(!this.muted);
+    else if (low === 'c' || low === 'h') this.setHideMsg(!this.hideMsg);
     else if (/^[1-9]$/.test(k) && this.steps[this.i] && this.steps[this.i].choices) this.choose(+k - 1);
     else if (k === 'Tab') used = false;
-    else used = !(e.ctrlKey || e.metaKey);   // app shortcuts (undo …) stay off while the player is open
     if (used) { e.preventDefault(); e.stopPropagation(); }
+  },
+
+  nudgeVolume(d) {
+    this.vol = Math.max(0, Math.min(1, Math.round((this.vol + d) * 100) / 100));
+    this.muted = this.vol === 0;
+    this.applyVolume();
   },
 };
 

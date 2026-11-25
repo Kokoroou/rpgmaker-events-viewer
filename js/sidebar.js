@@ -5,6 +5,7 @@ function renderSidebar() {
   listEl.innerHTML = '';
   renderSidebarItems(listEl);
   listEl.scrollTop = top;
+  syncPlay();   // scenes are found as the maps are read
 }
 
 // Event count of a map, or a placeholder while its Map###.json is not read yet.

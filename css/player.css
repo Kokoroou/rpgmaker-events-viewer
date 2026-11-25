@@ -110,10 +110,28 @@ body.pl-open { overflow: hidden; }
 /* Controls */
 .pl-bar { flex-shrink: 0; padding: 4px 16px 12px; }
 #pl-seek { display: block; width: 100%; margin: 0 0 4px; accent-color: var(--pl-accent); cursor: pointer; }
-.pl-ctrl, .pl-nav, .pl-extra { display: flex; align-items: center; gap: 6px; }
+.pl-ctrl, .pl-nav, .pl-sound, .pl-extra { display: flex; align-items: center; gap: 6px; }
+.pl-sound { margin-left: 8px; }
 #pl-count { margin-left: 8px; font-size: 13px; color: var(--pl-fg2); font-variant-numeric: tabular-nums; }
 .pl-spacer { flex: 1; }
 #pl-vol { width: 96px; accent-color: var(--pl-accent); cursor: pointer; }
+
+/* Full screen, or a phone held sideways (player.js: overlay()): the scene fills the screen
+   and the controls lie over it on dark gradients, fading out after a few seconds without
+   input (.pl-idle), like a video player. */
+#player.pl-ov { background: #000; }
+#player.pl-ov .pl-main { position: absolute; inset: 0; }
+#player.pl-ov #pl-frame { border-radius: 0; border: 0; box-shadow: none; }
+#player.pl-ov .pl-top, #player.pl-ov .pl-bar {
+  position: absolute; left: 0; right: 0; z-index: 3;
+  transition: opacity .25s var(--ease);
+}
+#player.pl-ov .pl-top { top: 0; background: linear-gradient(rgba(0,0,0,.78), rgba(0,0,0,0)); padding-bottom: 12px; }
+#player.pl-ov .pl-bar { bottom: 0; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.82)); padding-top: 20px; }
+#player.pl-ov .pl-side { transition: opacity .25s var(--ease); }
+#player.pl-ov.pl-idle .pl-top, #player.pl-ov.pl-idle .pl-bar, #player.pl-ov.pl-idle .pl-side { opacity: 0; pointer-events: none; }
+#player.pl-ov.pl-idle, #player.pl-ov.pl-idle #pl-stage { cursor: none; }
+@media (prefers-reduced-motion: reduce) { #player.pl-ov .pl-top, #player.pl-ov .pl-bar, #player.pl-ov .pl-side { transition: none; } }
 
 @media (max-width: 700px) {
   .pl-side { display: none; }
@@ -122,16 +140,19 @@ body.pl-open { overflow: hidden; }
 @media (max-width: 600px) {
   .pl-btn { width: 44px; height: 44px; }
   #pl-vol { width: 64px; }
-  /* Phones: the position and the extra buttons go above the seek bar, the
-     playback buttons get their own row, centred. */
+  /* Phones: the position, mute and the extra buttons go above the seek bar, the
+     playback buttons get their own row, centred. No volume slider (the phone's own
+     buttons set the volume, as in a video app). */
   .pl-bar {
     padding: 4px 12px 10px;
-    display: grid; grid-template-columns: auto 1fr auto; align-items: center;
-    grid-template-areas: "count . extra" "seek seek seek" "nav nav nav";
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; column-gap: 8px;
+    grid-template-areas: "count sound extra" "seek seek seek" "nav nav nav";
   }
   .pl-ctrl { display: contents; }
   .pl-spacer { display: none; }
   #pl-count { grid-area: count; margin-left: 4px; }
+  .pl-sound { grid-area: sound; margin-left: 0; }
+  #pl-vol { display: none; }
   .pl-extra { grid-area: extra; }
   #pl-seek { grid-area: seek; margin: 2px 0 4px; }
   .pl-nav { grid-area: nav; justify-self: center; }

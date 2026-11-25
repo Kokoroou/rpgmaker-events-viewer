@@ -1,6 +1,6 @@
 /* ── MakerLens redesign layer: the Events part ────────────
    Dresses what only MakerLens Events has (graph, inspector, sidebar lists, search, event picker,
-   scene player, Use a save). The shared part (header, buttons, focus, start screen, dialogs,
+   scene player, Load save). The shared part (header, buttons, focus, start screen, dialogs,
    About) is css/lens.css, a verbatim copy of MakerLens Assets' file: edit it there, not here.
 
    Same gate as lens.css: every rule is under :root[data-lens] (js/lens-gate.js), so without the
@@ -120,7 +120,6 @@
   .ev-card-meta { font: 12px var(--mono); color: var(--t2); }
   .ev-card.ev-scene { border-color: var(--a40); box-shadow: inset 3px 0 0 var(--a-bg); }
   .ev-card-scene { font: 700 12px var(--mono); }
-  .ev-card-play { height: 32px; }
 
   /* ── Empty states ── */
   .empty-event-notice-icon { border-radius: 50%; border: 1px solid var(--bd2); }
@@ -180,6 +179,8 @@
   #pl-seek, #pl-vol { accent-color: #4ade80; min-height: 32px; }
   .pl-bar { padding: 8px 16px 16px; }
   #player :focus-visible { outline-color: #4ade80; }
+  #player.pl-ov { background: #000; }
+  #player.pl-ov .pl-btn:not(.pl-btn-main) { background: rgba(2, 6, 23, .45); }
 
   /* ══ faq.html (body.static): header, boxed questions, how-to steps, dark footer ══
      That page loads header/buttons/layout/switch.css for the shared bar and none of the app's
@@ -290,8 +291,6 @@
     #detail-panel { border-top: 1px solid var(--bd2); border-radius: 12px 12px 0 0; }
     #detail-header { padding-right: 8px; }
 
-    .ev-card-wrap .ev-card { padding-bottom: 66px; }
-    .ev-card-play { height: 44px; padding: 0 14px; }
     .ep-title { font-size: 22px; }
 
     #alt-link-input { height: 44px; font-size: 16px; }
@@ -303,7 +302,7 @@
     #loader-cancel { height: 44px; }
 
     .pl-top { padding: 0 8px 0 12px; }
-    .pl-nav, .pl-extra { gap: 8px; }
+    .pl-nav, .pl-sound, .pl-extra { gap: 8px; }
     #pl-seek, #pl-vol { min-height: 44px; }
   }
 }
