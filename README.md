@@ -6,6 +6,12 @@ See how an RPG Maker game's events work: dialogue, choices and conditions as an 
 
 **Who it's for:** guide and wiki writers, dataminers and speedrunners looking for what unlocks an ending or a hidden route; translators who need to know which branch a line belongs to; developers and writers who want a bird's-eye view of tangled events. Free, no account, no ads. Not an editor: to change events, use the RPG Maker editor. Part of the [MakerLens](https://makerlens.kokoroou.workers.dev/) family: to browse the same game's images and audio, use [MakerLens Assets](https://makerlens.kokoroou.workers.dev/assets/). (Formerly named LoreInsight.)
 
+| Start screen | An event as a flow graph |
+|---|---|
+| ![MakerLens Events start screen on a desktop browser](docs/screenshots/start-desktop.png) | ![An event's dialogue, choice and conditions as a flow graph in MakerLens Events](docs/screenshots/graph-desktop.png) |
+
+<sub>Screenshots use a demo game made for this README, not a real game.</sub>
+
 ## Features
 
 - **No install, no build** — works on released games: no project, no editor, no plugin
