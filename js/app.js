@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'scan-status','switch-tool','switch-go','setup-status','handoff','handoff-name','handoff-note','handoff-go','event-breadcrumb','page-tabs',
     'event-picker','event-list-grid','detail-panel','detail-body',
     'open-btn','about-btn','about-modal','about-close','theme-toggle',
-    'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play','save-btn','save-label','save-input',
+    'detail-toggle','sidebar-toggle','cy-fit','cy-zoom-in','cy-zoom-out','scene-play','play-hero','play-hero-btn','play-hero-label','play-hero-sub','play-hero-all','save-btn','save-label','save-input',
   ].forEach(id => { EL[id.replace(/-([a-z])/g, (_,c)=>c.toUpperCase())] = document.getElementById(id); });
   EL.graphView = document.getElementById('graph-view');
   EL.sbResizer = document.getElementById('sb-resizer');
@@ -51,6 +51,7 @@ function showPickerMessage(mapId, text) {
   buildBreadcrumb(mapId);
   EL.pageTabs.innerHTML = '';
   EL.eventPicker.classList.remove('hidden');
+  syncPlayHero();
   EL.eventListGrid.innerHTML = '';
   EL.eventListGrid.appendChild(el('div', 'detail-empty', text));
 }
@@ -84,9 +85,12 @@ function showEventPicker(mapId) {
   buildBreadcrumb(mapId);
   EL.pageTabs.innerHTML = '';
   EL.eventPicker.classList.remove('hidden');
+  syncPlayHero();
 
   const grid = EL.eventListGrid;
   grid.innerHTML = '';
+  syncPlayHero();
+  pickerPlay(mapId);
 
   // Events with a scene (pictures + dialogue, scenes.js) first; the rest keeps map order.
   const events = mapData.events.map(ev => ({ ev, scene: ev.pages.findIndex(page => isSceneList(page.list)) }))
@@ -104,19 +108,27 @@ function showEventPicker(mapId) {
       card.appendChild(badge);
     }
     card.addEventListener('click', () => selectEvent(mapId, ev.id, Math.max(0, scene)));
-    if (scene < 0) { grid.appendChild(card); continue; }
-    // A scene can be played straight from its card (a sibling button: buttons do not nest).
-    const wrap = el('div', 'ev-card-wrap');
-    const play = el('button', 'btn-primary btn-sm ev-card-play');
-    play.type = 'button';
-    play.title = 'Preview this scene with its pictures, dialogue and sound';
-    play.setAttribute('aria-label', `Preview scene ${ev.name}`);
-    play.appendChild(icon('play', 14));
-    play.appendChild(document.createTextNode('Preview'));
-    play.addEventListener('click', () => playScene({ kind: 'map', mapId, evId: ev.id, page: scene }));
-    wrap.append(card, play);
-    grid.appendChild(wrap);
+    grid.appendChild(card);
   }
+}
+
+// Above the event cards: play the scenes, this map's first, then on through the game (auto play).
+function pickerPlay(mapId) {
+  EL.eventPicker.querySelector('.ep-play')?.remove();
+  const all = findScenes();
+  if (!all.length) return;
+  const here = all.filter(sc => sc.kind === 'map' && sc.mapId === mapId);
+  const first = here[0] || all[0];
+  const bar = el('div', 'ep-play');
+  const btn = el('button', 'btn-primary ep-play-btn');
+  btn.type = 'button';
+  btn.append(icon('play', 18), document.createTextNode(here.length ? 'Play this map’s scenes' : `Play all ${all.length} scenes`));
+  btn.addEventListener('click', () => playScene(first, { auto: true }));
+  const more = all.length - here.length;
+  bar.append(btn, el('span', 'ep-play-sub', here.length
+    ? `${here.length} here` + (more ? `, then ${more} more in the game` : '')
+    : `From ${first.name} · ${first.where}`));
+  EL.eventListGrid.before(bar);
 }
 
 function selectEvent(mapId, evId, page = 0) {
@@ -175,12 +187,50 @@ function redrawPage() {
 }
 
 /* ── Scene preview (player.js) ───────────────────────── */
-// The toolbar's Preview button plays the page / common event on screen, when it shows
-// at least a picture or a message.
+// S.sceneEntry: the page / common event on screen, when it shows at least a picture or a
+// message. A new page brings the big Play button back.
 function setSceneEntry(entry) {
   const s = entry && sceneStats(entry.list);
   S.sceneEntry = s && (s.pictures || s.messages) ? entry : null;
-  if (EL.scenePlay) EL.scenePlay.hidden = !S.sceneEntry;
+  S.heroGone = false;
+  syncPlayHero();
+}
+
+// The big Play button in the middle of the graph (#play-hero), while the game has scenes:
+// "Play this scene" when the page on screen is one, else "Play all scenes" from the first.
+// Either way the player goes on into the next scenes, in auto play. It steps aside once the
+// graph is touched; then the toolbar's Play button plays the page on screen instead.
+function heroScenes() {
+  const all = findScenes();
+  const k = S.sceneEntry ? all.findIndex(sc => sc.list === S.sceneEntry.list) : -1;
+  return { all, cur: k >= 0 ? all[k] : null, k };
+}
+function syncPlayHero() {
+  if (!EL.playHero) return;
+  const picker = !EL.eventPicker.classList.contains('hidden');
+  const { all, cur, k } = heroScenes();
+  const show = all.length > 0 && !picker && !S.heroGone;
+  EL.playHero.hidden = !show;
+  if (EL.scenePlay) EL.scenePlay.hidden = show || !S.sceneEntry || picker;
+  if (!show) return;
+  const n = all.length;
+  EL.playHeroLabel.textContent = cur ? 'Play this scene' : n > 1 ? `Play all ${n} scenes` : 'Play the scene';
+  EL.playHeroSub.textContent = cur
+    ? (k < n - 1 ? `Scene ${k + 1} of ${n}, then the next ones` : `Scene ${k + 1} of ${n}`)
+    : `${all[0].name} · ${all[0].where}` + (n > 1 ? ' first' : '');
+  EL.playHeroAll.hidden = !cur || n < 2;
+  EL.playHeroAll.textContent = `Play all ${n} from the start`;
+  EL.playHeroBtn.setAttribute('aria-label', EL.playHeroLabel.textContent);
+}
+function playFromHero(fromStart) {
+  const { all, cur } = heroScenes();
+  const sc = fromStart || !cur ? all[0] : cur;
+  if (sc) playScene(sc, { auto: true });
+}
+function dismissPlayHero() {
+  if (S.heroGone || !EL.playHero || EL.playHero.hidden) return;
+  S.heroGone = true;
+  syncPlayHero();
 }
 
 // The toolbar's save button: its file name while a save is in use (error: shown for a moment).
@@ -194,7 +244,7 @@ function syncSave(error) {
   EL.saveLabel.textContent = error ? 'Save not read' : on ? `Save: ${S.save.name}` : 'Use a save';
   EL.saveBtn.title = error || (on
     ? `Scenes start from the switches and variables of ${S.save.name}. Click to stop using it.`
-    : 'Preview scenes with the switches and variables of a save file (it stays on your device)');
+    : 'Play scenes with the switches and variables of a save file (it stays on your device)');
   if (error) saveErrTimer = setTimeout(() => syncSave(), 5000);
 }
 
@@ -298,7 +348,13 @@ function init() {
     EL.detailToggle.classList.toggle('active', S.detailOpen);
   });
 
-  EL.scenePlay.addEventListener('click', () => { if (S.sceneEntry) openScene(S.sceneEntry); });
+  EL.scenePlay.addEventListener('click', () => { if (S.sceneEntry) openScene(S.sceneEntry, { auto: true }); });
+  EL.playHeroBtn.addEventListener('click', () => playFromHero(false));
+  EL.playHeroAll.addEventListener('click', () => playFromHero(true));
+  // Touching the graph (drag, tap, wheel) puts the big button away for this page.
+  const cyEl = document.getElementById('cy');
+  cyEl.addEventListener('pointerdown', dismissPlayHero);
+  cyEl.addEventListener('wheel', dismissPlayHero, { passive: true });
 
   // A save file (save.js): scenes then start from its switches and variables. Click again to drop it.
   EL.saveBtn.addEventListener('click', () => {

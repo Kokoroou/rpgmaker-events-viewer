@@ -88,9 +88,6 @@
 .ev-card-name { font-size: 14px; font-weight: 600; color: var(--t); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev-card-meta { font-size: 12px; color: var(--t3); margin-top: 2px; font-variant-numeric: tabular-nums; }
 /* Scene cards: the card opens the graph, the Preview button under its text plays the scene */
-.ev-card-wrap { position: relative; }
-.ev-card-wrap .ev-card { height: 100%; padding-bottom: 54px; }
-.ev-card-play { position: absolute; left: 14px; bottom: 12px; gap: 6px; }
 
 /* "Laying out N nodes…" while a big event page is being drawn */
 .layout-notice {
@@ -105,3 +102,42 @@
   pointer-events: none;
 }
 .layout-notice[hidden] { display: none; }
+
+/* Big Play button over the graph while the game has scenes (app.js: syncPlayHero) */
+.play-hero {
+  position: absolute; left: 50%; top: 50%; z-index: 6; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: max-content; max-width: calc(100% - 32px); padding: 20px 28px 16px;
+  text-align: center; color: var(--t);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border: 1px solid var(--bd2); border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(2, 6, 23, .18);
+  animation: hero-in .2s var(--ease);
+}
+.play-hero[hidden] { display: none; }
+@keyframes hero-in { from { opacity: 0; transform: translate(-50%, -46%); } }
+.play-hero-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 76px; height: 76px; margin-bottom: 8px; padding: 0 0 0 4px;
+  color: #fff; background: var(--a-bg); border: 0; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 6px 20px rgba(21, 128, 61, .35);
+  transition: transform .15s var(--ease), background .15s var(--ease);
+}
+.play-hero-btn:hover { transform: scale(1.06); }
+.play-hero-btn:focus-visible { outline: 3px solid var(--a); outline-offset: 3px; }
+#play-hero-label { font-size: 17px; font-weight: 700; }
+#play-hero-sub { font-size: 13px; color: var(--t2); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.play-hero-all {
+  margin-top: 6px; min-height: 36px; padding: 0 12px;
+  font: inherit; font-size: 13px; color: var(--a); background: none; border: 0; border-radius: var(--r);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.play-hero-all[hidden] { display: none; }
+.play-hero-all:hover { background: var(--a10); }
+.play-hero-all:focus-visible { outline: 2px solid var(--a); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .play-hero { animation: none; } .play-hero-btn { transition: none; } }
+
+/* Event picker: play the scenes from here (app.js: pickerPlay) */
+.ep-play { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 4px 0 8px; }
+.ep-play-btn { height: 44px; padding: 0 18px 0 14px; gap: 8px; font-size: 15px; }
+.ep-play-sub { font-size: 13px; color: var(--t2); }
