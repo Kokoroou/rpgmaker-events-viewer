@@ -1,6 +1,6 @@
 # MakerLens Events
 
-See how an RPG Maker game's events work: dialogue, choices and conditions as an interactive flow graph, and its cutscenes played like in the game, right in your browser. Supports **MV, MZ, VX Ace, VX, XP, 2000 and 2003**. Read-only, and everything runs on your device: your game files are never uploaded or modified.
+See how an RPG Maker game's events work: dialogue, choices and conditions as an interactive flow graph, and its cutscenes played like in the game, right in your browser. Supports **2000, 2003, XP, VX, VX Ace, MV and MZ**. Read-only, and everything runs on your device: your game files are never uploaded or modified.
 
 **[Try it live →](https://makerlens.kokoroou.workers.dev/events/)**
 
@@ -32,9 +32,9 @@ Desktop Chrome, Edge, Firefox and Brave work best; phone browsers may not offer 
 
 | Engine | Where the events are read from |
 |--------|--------|
-| MV / MZ | `data/*.json` (MV: `www/data/`) |
-| VX Ace / VX / XP | `Data/*.rvdata2` / `.rvdata` / `.rxdata` (Ruby Marshal, `js/rgss.js`), also from `Game.rgss3a` / `.rgss2a` / `.rgssad` |
 | 2000 / 2003 | `RPG_RT.lmt` / `RPG_RT.ldb` / `Map####.lmu` (LCF, `js/lcf.js`); Shift-JIS or Western text detected |
+| XP / VX / VX Ace | `Data/*.rxdata` / `.rvdata` / `.rvdata2` (Ruby Marshal, `js/rgss.js`), also from `.rgssad` / `.rgss2a` / `Game.rgss3a` |
+| MV / MZ | `data/*.json` (MV: `www/data/`) |
 
 Save files for **Use a save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.rxdata` (`js/save.js`). Formats and algorithms are documented in the code comments.
 
