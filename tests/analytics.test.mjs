@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { load } from './helpers.mjs';
 
 // Runs js/analytics.js with a fake browser and returns the URLs it requested.
-function setup({ host = 'makerlens.kokoroou.workers.dev', path = '/events/', search = '', referrer = '', dnt, gpc } = {}) {
+function setup({ host = 'makerlens.kokoroou.com', path = '/events/', search = '', referrer = '', dnt, gpc } = {}) {
   const sent = [], images = [];
   class Image { set src(u) { sent.push(new URL(u)); images.push(this); } }
   const get = load(['analytics.js'], {
@@ -17,13 +17,13 @@ function setup({ host = 'makerlens.kokoroou.workers.dev', path = '/events/', sea
 const run = opts => setup(opts).sent;
 
 test('sends one page view with only path, referrer and the random cache-buster', () => {
-  const sent = run({ referrer: 'https://makerlens.kokoroou.workers.dev/assets/' });
+  const sent = run({ referrer: 'https://makerlens.kokoroou.com/assets/' });
   assert.equal(sent.length, 1);
   const u = sent[0];
   assert.equal(u.origin + u.pathname, 'https://makerlens.goatcounter.com/count');
   assert.deepEqual([...u.searchParams.keys()].sort(), ['p', 'r', 'rnd']);
   assert.equal(u.searchParams.get('p'), '/events/');
-  assert.equal(u.searchParams.get('r'), 'https://makerlens.kokoroou.workers.dev/assets/');
+  assert.equal(u.searchParams.get('r'), 'https://makerlens.kokoroou.com/assets/');
 });
 
 test('forwards only the listed traffic-source params', () => {

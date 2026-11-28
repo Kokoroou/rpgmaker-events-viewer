@@ -20,15 +20,15 @@ Guide and wiki writers, dataminers and speedrunners (what unlocks an ending or a
 
 ## Use it
 
-- App: https://makerlens.kokoroou.workers.dev/events/
-- FAQ (which folder to open, what the graph shows, finding what unlocks an ending, switch names, privacy): https://makerlens.kokoroou.workers.dev/events/faq.html
+- App: https://makerlens.kokoroou.com/events/
+- FAQ (which folder to open, what the graph shows, finding what unlocks an ending, switch names, privacy): https://makerlens.kokoroou.com/events/faq.html
 - Open Chrome or Edge for folder access; other browsers can pick the `data/` files one by one.
 
 ## Related
 
-- MakerLens Assets (images and audio of the same game): https://makerlens.kokoroou.workers.dev/assets/
-- MakerLens home: https://makerlens.kokoroou.workers.dev/
-- Privacy (no uploads, anonymous counter of page views and of a few actions by name only): https://makerlens.kokoroou.workers.dev/assets/privacy.html
+- MakerLens Assets (images and audio of the same game): https://makerlens.kokoroou.com/assets/
+- MakerLens home: https://makerlens.kokoroou.com/
+- Privacy (no uploads, anonymous counter of page views and of a few actions by name only): https://makerlens.kokoroou.com/assets/privacy.html
 
 ## Source
 

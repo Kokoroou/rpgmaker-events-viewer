@@ -27,7 +27,7 @@
 const FB_ENDPOINT = 'https://feedback.kokoroou.workers.dev/api/submit';
 const FB_PROJECT  = 'makerlens-events';
 const FB_STORE    = 'mle-feedback';
-const FB_HOST     = 'makerlens.kokoroou.workers.dev';
+const FB_HOST     = 'makerlens.kokoroou.com';
 const FB_ASK_AT   = 2;   // ask on the 2nd loaded game
 const FB_SKIP_GAP = 5;   // "Not now" → ask again 5 games later…
 const FB_MAX_SKIP = 2;   // …and never after the 2nd "Not now"
