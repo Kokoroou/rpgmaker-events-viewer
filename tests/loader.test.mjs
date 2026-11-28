@@ -369,7 +369,7 @@ test('opens a game from a link: data over the key, pictures read later from the 
   load2('globalThis').__calls = calls;
   load2('setStatus = (k, h) => __calls.status.push([k, h]); renderSidebar = () => {}; selectMap = id => __calls.selected.push(id);');
 
-  const link = load2(`Remote.parseLink('https://makerlens.kokoroou.workers.dev/events/#game=${encodeURIComponent('https://my-game.alice.workers.dev')}&t=${TOKEN}')`);
+  const link = load2(`Remote.parseLink('https://makerlens.kokoroou.com/events/#game=${encodeURIComponent('https://my-game.alice.workers.dev')}&t=${TOKEN}')`);
   load2('globalThis').__link = link;
   await load2('openRemote(__link)');
   await load2('S.bgDone');

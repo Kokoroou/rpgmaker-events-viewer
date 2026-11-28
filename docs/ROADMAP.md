@@ -2,7 +2,7 @@
 
 This roadmap turns the LoreInsight prototype into **MakerLens Events**, the event-flow half of the
 MakerLens family (MakerLens Assets views a game's images and audio:
-<https://makerlens.kokoroou.workers.dev/assets/>). It comes from the idea evaluation of 2026-11-05.
+<https://makerlens.kokoroou.com/assets/>). It comes from the idea evaluation of 2026-11-05.
 
 **Direction:** MakerLens Events grows only as part of MakerLens: same audience and gesture as MakerLens Assets,
 a narrower job, so a separate brand would split the traffic. Free, no paid tier.
@@ -62,7 +62,7 @@ Goal: the product is public, findable and measurable, and both MakerLens sites p
 
 | # | Item | Notes | Effort |
 |---|------|-------|--------|
-| 1.1 | ~~**Publish**~~ | Done: <https://makerlens.kokoroou.workers.dev/events/>, deployed by `Kokoroou/makerlens` (one Cloudflare Worker for the family) | S |
+| 1.1 | ~~**Publish**~~ | Done: <https://makerlens.kokoroou.com/events/>, deployed by `Kokoroou/makerlens` (one Cloudflare Worker for the family) | S |
 | 1.2 | ~~**Decide the repository name**~~ | Done: renamed to `rpgmaker-events-viewer` (matches `rpgmaker-assets-viewer`) | S |
 | 1.3 | ~~**Cross-link from MakerLens Assets**~~ | Done: MakerLens Assets roadmap item 17, a link in its About dialog; Events links back from the setup screen and About. Link only, no data shared between sites | S |
 | 1.4 | ~~**Anonymous page counter (GoatCounter)**~~ | Done: `js/analytics.js`, page views and referrer plus a few actions by fixed name, CSP `img-src` allows the counter; documented in the shared MakerLens privacy page (`/assets/privacy.html#analytics`) | S |
@@ -96,7 +96,7 @@ and feedback come in.
 ## How we decide
 
 Which phase item comes next is decided from anonymous usage counts and feedback (what is counted:
-[privacy page](https://makerlens.kokoroou.workers.dev/assets/privacy.html#analytics)); the owner keeps the
+[privacy page](https://makerlens.kokoroou.com/assets/privacy.html#analytics)); the owner keeps the
 analysis and decision notes outside this repository. "Stop adding features" would mean: keep the site
 online and linked from MakerLens, fix bugs only.
 

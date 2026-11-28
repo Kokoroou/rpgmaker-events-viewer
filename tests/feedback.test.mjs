@@ -5,7 +5,7 @@ import { load, plain } from './helpers.mjs';
 // No #feedback element: the card wiring is skipped, the pure helpers stay testable.
 const run = load(['feedback.js'], {
   document: { getElementById: () => null },
-  location: { hostname: 'makerlens.kokoroou.workers.dev', search: '' },
+  location: { hostname: 'makerlens.kokoroou.com', search: '' },
   navigator: {}, URLSearchParams,
 });
 

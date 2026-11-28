@@ -2,9 +2,9 @@
 
 See how an RPG Maker game's events work: dialogue, choices and conditions as an interactive flow graph, and its cutscenes played like in the game, right in your browser. Supports **2000, 2003, XP, VX, VX Ace, MV and MZ**. Read-only, and everything runs on your device: your game files are never uploaded or modified.
 
-**[Try it live →](https://makerlens.kokoroou.workers.dev/events/)**
+**[Try it live →](https://makerlens.kokoroou.com/events/)**
 
-**Who it's for:** guide and wiki writers, dataminers and speedrunners looking for what unlocks an ending or a hidden route; translators who need to know which branch a line belongs to; developers and writers who want a bird's-eye view of tangled events. Free, no account, no ads. Not an editor: to change events, use the RPG Maker editor. Part of the [MakerLens](https://makerlens.kokoroou.workers.dev/) family: to browse the same game's images and audio, use [MakerLens Assets](https://makerlens.kokoroou.workers.dev/assets/). (Formerly named LoreInsight.)
+**Who it's for:** guide and wiki writers, dataminers and speedrunners looking for what unlocks an ending or a hidden route; translators who need to know which branch a line belongs to; developers and writers who want a bird's-eye view of tangled events. Free, no account, no ads. Not an editor: to change events, use the RPG Maker editor. Part of the [MakerLens](https://makerlens.kokoroou.com/) family: to browse the same game's images and audio, use [MakerLens Assets](https://makerlens.kokoroou.com/assets/). (Formerly named LoreInsight.)
 
 | Start screen | An event as a flow graph |
 |---|---|
@@ -26,13 +26,13 @@ See how an RPG Maker game's events work: dialogue, choices and conditions as an 
 
 ## Getting started
 
-1. Open **[MakerLens Events](https://makerlens.kokoroou.workers.dev/events/)**.
+1. Open **[MakerLens Events](https://makerlens.kokoroou.com/events/)**.
 2. Click **Select Game Folder** (or drop the folder anywhere on the page) and pick the game's **main folder: the one with `Game.exe` in it** (`RPG_RT.exe` for 2000/2003). The data is found for you; picking the `data/` folder itself also works.
 3. Click a map in the sidebar, then an event card to draw its graph, or press **Preview** on a scene to play it.
 
 **Picked the wrong folder?** If it holds no game data (such as `img/`), the viewer says so, names the folder and tells you to pick the one above it.
 
-Desktop Chrome, Edge, Firefox and Brave work best; phone browsers may not offer folder selection. More help (which folder, reading the graph, scenes, saves): [FAQ](https://makerlens.kokoroou.workers.dev/events/faq.html).
+Desktop Chrome, Edge, Firefox and Brave work best; phone browsers may not offer folder selection. More help (which folder, reading the graph, scenes, saves): [FAQ](https://makerlens.kokoroou.com/events/faq.html).
 
 ## Supported engines
 
@@ -46,7 +46,7 @@ Save files for **Load save**: `.rpgsave`, `.rmmzsave`, `.rvdata2`, `.rvdata`, `.
 
 ## Privacy and legal
 
-- **Privacy:** your game is processed only in your browser; nothing about it is sent anywhere. The public site counts anonymous page visits and a few actions by name (GoatCounter: how a game was opened, which feature was used, never what) and sends feedback only when you choose to. What is sent, and what never is, is defined on the [privacy page](https://makerlens.kokoroou.workers.dev/assets/privacy.html), the single source of truth. A Content-Security-Policy makes the browser block every other host.
+- **Privacy:** your game is processed only in your browser; nothing about it is sent anywhere. The public site counts anonymous page visits and a few actions by name (GoatCounter: how a game was opened, which feature was used, never what) and sends feedback only when you choose to. What is sent, and what never is, is defined on the [privacy page](https://makerlens.kokoroou.com/assets/privacy.html), the single source of truth. A Content-Security-Policy makes the browser block every other host.
 - **Legal:** intended for games you own or have the rights holder's permission to inspect; games are only read, never modified. See [`LEGAL.md`](https://github.com/Kokoroou/rpgmaker-assets-viewer/blob/main/LEGAL.md) in MakerLens Assets for intended use, user responsibility and takedown policy.
 
 ## Documentation

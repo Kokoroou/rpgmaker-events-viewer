@@ -4,8 +4,8 @@ contact_links:
     url: https://github.com/Kokoroou/makerlens/discussions
     about: Ask or share in MakerLens Discussions.
   - name: Privacy – what the site sends
-    url: https://makerlens.kokoroou.workers.dev/assets/privacy.html
+    url: https://makerlens.kokoroou.com/assets/privacy.html
     about: MakerLens reads your game files only in your browser.
   - name: FAQ – folders, scenes, saves
-    url: https://makerlens.kokoroou.workers.dev/events/faq.html
+    url: https://makerlens.kokoroou.com/events/faq.html
     about: Answers to the most common questions.

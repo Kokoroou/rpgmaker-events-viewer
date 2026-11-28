@@ -1,6 +1,6 @@
 // ─── Anonymous page-view counter (GoatCounter) ────────
 // Same counter as the rest of the MakerLens family (see MakerLens Assets
-// js/analytics.js and https://makerlens.kokoroou.workers.dev/assets/privacy.html#analytics).
+// js/analytics.js and https://makerlens.kokoroou.com/assets/privacy.html#analytics).
 // Sends ONE request per page load to GoatCounter's documented /count endpoint
 // (https://www.goatcounter.com/help/pixel). No cookies, no localStorage,
 // no fingerprinting. GoatCounter does not store IP addresses.
@@ -21,7 +21,7 @@ var countEvent = function () { return Promise.resolve(); };
 (function () {
   'use strict';
   var GC_ENDPOINT = 'https://makerlens.goatcounter.com/count';
-  var PUBLIC_HOST = 'makerlens.kokoroou.workers.dev';
+  var PUBLIC_HOST = 'makerlens.kokoroou.com';
   // Every name goes out with the page code in front, so the counter tells the tools apart:
   // 'ev-' = MakerLens Events, 'as-' = MakerLens Assets (e.g. ev-open-ok, as-open-ok).
   var PAGE = 'ev-';
