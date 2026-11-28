@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.0](https://github.com/Kokoroou/rpgmaker-events-viewer/compare/v1.0.0...v1.1.0) (2026-11-28)
+
+
+### Features
+
+* **faq:** list-style answers, pinned family header, new share image ([#57](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/57)) ([0ad5381](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/0ad538116802f185639197df33ef9374d71b4407))
+* **faq:** share the theme with the family and use the family header and footer ([#56](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/56)) ([e4393db](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/e4393db6ba77aac95acf9e19b6f0a724e640a7fe))
+* MakerLens redesign layer for Events ([#54](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/54)) ([adb6840](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/adb6840192f27347459a4e19f4d6acd2fd7506b9))
+* Play in the toolbar, video-player controls with full screen, Load save ([#60](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/60)) ([5d4b753](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/5d4b753337d01b3a5cbcd7d231c91f2ae9480053))
+* use the new home makerlens.kokoroou.com ([#62](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/62)) ([8d4b75f](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/8d4b75f8d0b6f5c82410ecd98eac04bbb9ee3d20))
+* versions in release order, new share image, family header in the app ([#58](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/58)) ([c7247f0](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/c7247f084ab0dff20bf9b8c9d497db232469b626))
+
+
+### Bug Fixes
+
+* shorten the start title and add desktop screenshots to the README ([#61](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/61)) ([15a3959](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/15a3959e15517b20dc88c52027cd2e930bfabc7d))
+* shorter start screen subtitle, no "read-only" note, theme button without ring ([#59](https://github.com/Kokoroou/rpgmaker-events-viewer/issues/59)) ([818c18d](https://github.com/Kokoroou/rpgmaker-events-viewer/commit/818c18df1cd7b158827d37f40669661a17065911))
+
 ## 1.0.0 (2026-11-24)
 
 
